@@ -3,6 +3,31 @@
   "reactNativePath": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\react-native",
   "reactNativeVersion": "0.81",
   "dependencies": {
+    "@react-native-documents/picker": {
+      "root": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\@react-native-documents\\picker",
+      "name": "@react-native-documents/picker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\@react-native-documents\\picker\\react-native-document-picker.podspec",
+          "version": "10.1.7",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\@react-native-documents\\picker\\android",
+          "packageImportPath": "import com.reactnativedocumentpicker.RNDocumentPickerPackage;",
+          "packageInstance": "new RNDocumentPickerPackage()",
+          "buildTypes": [],
+          "libraryName": "rndocumentpickerCGen",
+          "componentDescriptors": [],
+          "cmakeListsPath": "E:/GIT_PROJECT/starvega_app/frontend/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "@react-native-firebase/app": {
       "root": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\@react-native-firebase\\app",
       "name": "@react-native-firebase/app",
@@ -53,31 +78,6 @@
           "buildTypes": [],
           "componentDescriptors": [],
           "cmakeListsPath": "E:/GIT_PROJECT/starvega_app/frontend/node_modules/@react-native-firebase/messaging/android/build/generated/source/codegen/jni/CMakeLists.txt",
-          "cxxModuleCMakeListsModuleName": null,
-          "cxxModuleCMakeListsPath": null,
-          "cxxModuleHeaderName": null,
-          "isPureCxxDependency": false
-        }
-      }
-    },
-    "react-native-document-picker": {
-      "root": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\react-native-document-picker",
-      "name": "react-native-document-picker",
-      "platforms": {
-        "ios": {
-          "podspecPath": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\react-native-document-picker\\react-native-document-picker.podspec",
-          "version": "9.3.1",
-          "configurations": [],
-          "scriptPhases": []
-        },
-        "android": {
-          "sourceDir": "E:\\GIT_PROJECT\\starvega_app\\frontend\\node_modules\\react-native-document-picker\\android",
-          "packageImportPath": "import com.reactnativedocumentpicker.RNDocumentPickerPackage;",
-          "packageInstance": "new RNDocumentPickerPackage()",
-          "buildTypes": [],
-          "libraryName": "rndocumentpicker",
-          "componentDescriptors": [],
-          "cmakeListsPath": "E:/GIT_PROJECT/starvega_app/frontend/node_modules/react-native-document-picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
