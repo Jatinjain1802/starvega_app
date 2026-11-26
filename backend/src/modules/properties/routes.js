@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createAnnouncementRouter } from './announcements.js';
 import { createComplaintRouter } from './complaints.js';
 import { createRentRouter } from './rent.js';
 import { createPeopleRouter } from './people.js';
@@ -12,6 +13,7 @@ export function createPropertyRouter(db, secret) {
   const router = Router();
   router.use(authenticate(db,secret));
   router.use('/:id/complaints',createComplaintRouter(db));
+  router.use('/:id/announcements',createAnnouncementRouter(db));
   router.use('/:id/rooms',createRoomRouter(db));
   router.use('/:id/people',createPeopleRouter(db));
   router.use('/:id/rent',createRentRouter(db));
