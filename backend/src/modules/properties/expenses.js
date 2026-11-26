@@ -26,7 +26,9 @@ export function createExpenseRouter(db){
   if(!await db.property.findFirst({where:{AND:[{id:req.params.id},propertyScope(req.user)]},select:{id:true}}))return res.status(404).json({error:'NOT_FOUND'});
   next();
  });
- router.post('/',async(req,res)=>{
+ router.post('/',requireRole('MANAGER'),async(req,res)=>{
+  // Fail closed until verified, privately stored mandatory receipt uploads are implemented.
+  return res.status(503).json({error:'RECEIPT_UPLOAD_NOT_AVAILABLE'});
   const {category,description,vendor,paymentMethod,incurredAt,requestKey,items}=req.body??{};
   const calculated=calculateItems(items);
   const when=typeof incurredAt==='string'&&/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(incurredAt)?new Date(incurredAt):null;
