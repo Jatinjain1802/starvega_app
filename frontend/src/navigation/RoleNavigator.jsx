@@ -1,4 +1,5 @@
 import React from 'react';
+import Complaints from '../screens/common/Complaints';
 import {ResidentRent,StaffRent} from '../screens/common/Rent';
 import People from '../screens/common/People';
 import Properties from '../screens/common/Properties';
@@ -27,7 +28,7 @@ function Profile({navigation}){
 }
 function RoleTabs(){
  const role=useSelector(s=>s.auth.user.role);
- return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Tabs.Navigator>;
+ return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:name==='Complaints'?Complaints:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Tabs.Navigator>;
 }
 export default function RoleNavigator(){
  const user=useSelector(s=>s.auth.user);
