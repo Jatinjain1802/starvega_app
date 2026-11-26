@@ -1,4 +1,5 @@
 import express from 'express';
+import { createNotificationRouter } from './modules/notifications/routes.js';
 import { createPaymentRouter, paymentWebhook } from './modules/payments/routes.js';
 import { createResidentRouter } from './modules/residents/routes.js';
 import helmet from 'helmet';
@@ -21,6 +22,7 @@ export function createApp({ db, jwtSecret }) {
       res.status(503).json({ status: 'unavailable' });
     }
   });
+  if (jwtSecret) app.use('/api/v1/notifications',createNotificationRouter(db,jwtSecret));
   if (jwtSecret) app.use('/api/v1/auth', createAuthRouter(db, jwtSecret));
   if (jwtSecret) app.use('/api/v1/properties', createPropertyRouter(db, jwtSecret));
   if (jwtSecret) app.use('/api/v1/resident', createResidentRouter(db, jwtSecret));
