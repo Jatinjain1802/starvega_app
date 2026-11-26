@@ -22,6 +22,7 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  notifications Notification[]
   maintenanceTasks MaintenanceTask[]
   maintenanceEvents MaintenanceEvent[]
   expenses Expense[]
@@ -331,4 +332,18 @@ model MaintenanceEvent {
   note String
   createdAt DateTime @default(now())
   @@index([taskId, createdAt])
+}
+
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  kind String
+  title String
+  body String
+  dedupeKey String
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt])
 }
