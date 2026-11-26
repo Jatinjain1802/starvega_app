@@ -3,7 +3,8 @@ import { acceptInvitation } from './invitations.js';
 import jwt from 'jsonwebtoken';
 import { randomBytes, createHash } from 'node:crypto';
 import { rateLimit } from 'express-rate-limit';
-import { verifyPassword } from './password.js';
+import { verifyPassword, hashPassword } from './password.js';
+import { authenticate } from './middleware.js';
 
 const digest = token => createHash('sha256').update(token).digest('hex');
 const publicUser = ({ id, name, phone, role }) => ({ id, name, phone, role });
@@ -50,6 +51,20 @@ export function createAuthRouter(db, secret) {
     if (!validRefresh(token)) return res.status(400).json({ error: 'INVALID_INPUT' });
     await db.session.updateMany({ where: { tokenHash: digest(token), revokedAt: null }, data: { revokedAt: new Date() } });
     return res.status(204).end();
+  });
+  router.post('/password', limiter, authenticate(db,secret), async (req,res)=>{
+    const {currentPassword,newPassword}=req.body??{};
+    if(typeof currentPassword!=='string'||currentPassword.length>128||typeof newPassword!=='string'||newPassword.length<12||newPassword.length>128||currentPassword===newPassword)return res.status(400).json({error:'INVALID_INPUT'});
+    const user=await db.user.findUnique({where:{id:req.user.id}});
+    if(!user?.active||!await verifyPassword(currentPassword,user.passwordHash))return res.status(403).json({error:'INCORRECT_PASSWORD'});
+    const passwordHash=await hashPassword(newPassword);
+    const changed=await db.$transaction(async tx=>{
+      const result=await tx.user.updateMany({where:{id:user.id,active:true,passwordHash:user.passwordHash},data:{passwordHash}});
+      if(!result.count)return false;
+      await tx.session.updateMany({where:{userId:user.id,revokedAt:null},data:{revokedAt:new Date()}});
+      return true;
+    });
+    return changed?res.status(204).end():res.status(409).json({error:'ACCOUNT_CHANGED'});
   });
   router.get('/me', async (req, res) => {
     const token = /^Bearer (\S+)$/.exec(req.get('authorization') ?? '')?.[1];
