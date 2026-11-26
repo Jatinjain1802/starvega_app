@@ -1,4 +1,5 @@
 import { Router, raw } from 'express';
+import { notify } from '../notifications/routes.js';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { authenticate, requireRole } from '../auth/middleware.js';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -55,6 +56,7 @@ export function paymentWebhook(db,config){
     if(order.capturedAt||order.rentDue.amountPaise-order.rentDue.payments.reduce((n,x)=>n+x.amountPaise,0)!==p.amount)return false;
     await tx.rentPayment.create({data:{rentDueId:order.rentDueId,amountPaise:p.amount,reference:p.id}});
     await tx.paymentOrder.update({where:{id:order.id},data:{capturedAt:new Date()}});
+    await notify(tx,[order.rentDue.residentId],{kind:'PAYMENT',title:'Rent payment received',body:'Your rent payment was confirmed. Open your payment history for the receipt.',dedupeKey:'payment:'+p.id});
     return true;
    },{isolationLevel:'Serializable'});
    return res.status(result?204:409).end();
