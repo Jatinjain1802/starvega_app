@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createComplaintRouter } from './complaints.js';
 import { createRentRouter } from './rent.js';
 import { createPeopleRouter } from './people.js';
 import { createRoomRouter } from './rooms.js';
@@ -10,6 +11,7 @@ const valid = (s,max) => typeof s === 'string' && s.trim().length > 0 && s.trim(
 export function createPropertyRouter(db, secret) {
   const router = Router();
   router.use(authenticate(db,secret));
+  router.use('/:id/complaints',createComplaintRouter(db));
   router.use('/:id/rooms',createRoomRouter(db));
   router.use('/:id/people',createPeopleRouter(db));
   router.use('/:id/rent',createRentRouter(db));
