@@ -22,6 +22,8 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  maintenanceTasks MaintenanceTask[]
+  maintenanceEvents MaintenanceEvent[]
   expenses Expense[]
   announcements Announcement[]
   announcementReads AnnouncementRead[]
@@ -40,6 +42,7 @@ model Property {
   address String
   rooms Room[]
   managers ManagerAssignment[]
+  maintenanceTasks MaintenanceTask[]
   expenses Expense[]
   announcements Announcement[]
   complaints Complaint[]
@@ -182,6 +185,7 @@ model Complaint {
   updatedAt DateTime @updatedAt
   likes ComplaintLike[]
   events ComplaintEvent[]
+  maintenanceTasks MaintenanceTask[]
   @@index([propertyId, status])
 }
 model ComplaintLike {
@@ -265,6 +269,7 @@ model Expense {
   createdAt DateTime @default(now())
   items ExpenseItem[]
   receipts ExpenseReceipt[]
+  maintenanceTask MaintenanceTask?
   @@unique([propertyId, requestKey])
   @@index([propertyId, incurredAt])
 }
@@ -289,4 +294,41 @@ model ExpenseReceipt {
   data Bytes
   createdAt DateTime @default(now())
   @@index([expenseId])
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+model MaintenanceTask {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  authorId String @db.Uuid
+  complaintId String? @db.Uuid
+  expenseId String? @unique @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  complaint Complaint? @relation(fields: [complaintId], references: [id])
+  expense Expense? @relation(fields: [expenseId], references: [id])
+  title String
+  description String
+  technician String?
+  status MaintenanceStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events MaintenanceEvent[]
+  @@index([propertyId, status])
+}
+model MaintenanceEvent {
+  id String @id @default(uuid()) @db.Uuid
+  taskId String @db.Uuid
+  actorId String @db.Uuid
+  task MaintenanceTask @relation(fields: [taskId], references: [id])
+  actor User @relation(fields: [actorId], references: [id])
+  status MaintenanceStatus
+  note String
+  createdAt DateTime @default(now())
+  @@index([taskId, createdAt])
 }
