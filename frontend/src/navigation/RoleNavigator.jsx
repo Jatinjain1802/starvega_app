@@ -1,4 +1,6 @@
 import React from 'react';
+import Properties from '../screens/common/Properties';
+import Rooms from '../screens/common/Rooms';
 import ResidentDashboard from '../screens/resident/Dashboard';
 import ManagerDashboard from '../screens/manager/Dashboard';
 import OwnerDashboard from '../screens/owner/Dashboard';
@@ -23,10 +25,10 @@ function Profile({navigation}){
 }
 function RoleTabs(){
  const role=useSelector(s=>s.auth.user.role);
- return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:ModuleScreen}/>)}</Tabs.Navigator>;
+ return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:name==='Properties'?Properties:ModuleScreen}/>)}</Tabs.Navigator>;
 }
 export default function RoleNavigator(){
  const user=useSelector(s=>s.auth.user);
  if(!user||!menus[user.role])return <Screen title="Account unavailable"><Button title="Sign out" onPress={logout}/></Screen>;
- return <NavigationContainer key={user.id+':'+user.role}><Stack.Navigator><Stack.Screen name="Main" component={RoleTabs} options={{headerShown:false}}/>{extras[user.role].map(name=><Stack.Screen key={name} name={name} component={ModuleScreen}/>)}</Stack.Navigator></NavigationContainer>;
+ return <NavigationContainer key={user.id+':'+user.role}><Stack.Navigator><Stack.Screen name="Main" component={RoleTabs} options={{headerShown:false}}/>{extras[user.role].map(name=><Stack.Screen key={name} name={name} component={name==='Rooms'?Rooms:name==='Properties'?Properties:ModuleScreen}/>)}</Stack.Navigator></NavigationContainer>;
 }
