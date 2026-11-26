@@ -1,9 +1,9 @@
 import { useOwnerScope } from './Scope';
 import React, { useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import { Screen, Card, StatCard, LoadingState, ErrorState, EmptyState, Button } from '../../components';
+import { Screen, Card, LoadingState, ErrorState, EmptyState, Button } from '../../components';
 import { Highlight, Shortcuts, Section, NotificationButton } from './Overview';
-import { MonthPicker, PropertyPicker, monthLabel } from './Controls';
+import { MonthPicker, PortfolioFilters, monthLabel } from './Controls';
 import { colors, currentMonth, money, percent, useOwnerPortfolio } from './portfolio';
 
 const frequent = [
@@ -38,12 +38,14 @@ export default function OwnerDashboard({ navigation }) {
   return (
     <Screen
       title="Portfolio overview"
-      subtitle="Starvega PG · Owner"
+      eyebrow="Starvega PG · Owner"
       onRefresh={reload}
       refreshing={status === 'loading'}
       action={<NotificationButton onPress={() => navigation.navigate('Notifications')} />}
     >
-      <MonthPicker month={month} onChange={setMonth} latest={currentMonth()} />
+      {(status !== 'ready' || !data?.properties.length) && (
+        <MonthPicker month={month} onChange={setMonth} latest={currentMonth()} />
+      )}
       {status === 'loading' ? (
         <LoadingState message="Loading your portfolio…" />
       ) : status === 'error' ? (
@@ -57,30 +59,42 @@ export default function OwnerDashboard({ navigation }) {
         />
       ) : (
         <>
-          <PropertyPicker
-            items={[{ id: null, name: 'All properties' }, ...data.properties]}
-            value={selected?.id ?? null}
-            onChange={setPropertyId}
+          <PortfolioFilters
+            properties={data.properties}
+            propertyId={selected?.id ?? null}
+            onPropertyChange={setPropertyId}
+            month={month}
+            onMonthChange={setMonth}
+            latest={currentMonth()}
           />
           <Highlight
             label="Rent received"
             value={money(summary.collectedPaise)}
+            metrics={[
+              ['Outstanding rent', money(summary.outstandingPaise)],
+              ['Recorded expenses', money(summary.expensePaise)],
+            ]}
             detail={monthLabel(month) + ' · ' + (selected?.name || 'All properties')}
             action="View finances"
             onPress={() => open('Finance')}
           />
-          <View style={styles.grid}>
-            <StatCard
-              label="Outstanding rent"
-              value={money(summary.outstandingPaise)}
-              style={styles.stat}
-            />
-            <StatCard
-              label="Recorded expenses"
-              value={money(summary.expensePaise)}
-              style={styles.stat}
-            />
-          </View>
+        </>
+      )}
+      <Section>Quick actions</Section>
+      <Shortcuts items={frequent} onSelect={open} />
+      {more && (
+        <>
+          <Section>Management tools</Section>
+          <Shortcuts items={management} onSelect={open} />
+        </>
+      )}
+      <Button
+        title={more ? 'Show fewer tools' : 'All management tools'}
+        variant="secondary"
+        onPress={() => setMore(!more)}
+      />
+      {status === 'ready' && !!data?.properties.length && (
+        <>
           <Section>Current occupancy</Section>
           <Card>
             <View style={styles.row}>
@@ -112,26 +126,11 @@ export default function OwnerDashboard({ navigation }) {
           </Card>
         </>
       )}
-      <Section>Quick actions</Section>
-      <Shortcuts items={frequent} onSelect={open} />
-      {more && (
-        <>
-          <Section>Management tools</Section>
-          <Shortcuts items={management} onSelect={open} />
-        </>
-      )}
-      <Button
-        title={more ? 'Show fewer tools' : 'All management tools'}
-        variant="secondary"
-        onPress={() => setMore(!more)}
-      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  stat: { flexGrow: 1, flexBasis: 140 },
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -143,5 +142,5 @@ const styles = StyleSheet.create({
   muted: { color: colors.muted, fontSize: 14 },
   rate: { fontWeight: '700', color: colors.primary },
   track: { height: 8, borderRadius: 4, backgroundColor: colors.soft, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4, backgroundColor: colors.primary },
+  fill: { height: 8, borderRadius: 4, backgroundColor: colors.brass },
 });

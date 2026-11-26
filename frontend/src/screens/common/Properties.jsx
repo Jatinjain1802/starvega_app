@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Screen, Card, Button, TextField, LoadingState, ErrorState, EmptyState } from '../../components';
-import RecordLink from '../../components/RecordLink';
+import RecordLink, { RecordGroup } from '../../components/RecordLink';
 import TaskSheet from '../../components/TaskSheet';
 import { Shortcuts } from '../owner/Overview';
 import { colors } from '../../theme';
@@ -63,10 +63,10 @@ export default function Properties({ navigation }) {
       subtitle={
         items.length ? items.length + ' ' + (items.length === 1 ? 'property' : 'properties') : undefined
       }
+      action={owner ? <Button title="Add property" onPress={() => edit(null)} /> : undefined}
       refreshing={state === 'loading'}
       onRefresh={reload}
     >
-      {owner && <Button title="Add property" onPress={() => edit(null)} />}
       {state === 'loading' ? (
         <LoadingState />
       ) : state === 'error' ? (
@@ -91,15 +91,21 @@ export default function Properties({ navigation }) {
               returnKeyType="search"
             />
           )}
-          {matches.map((p) => (
-            <RecordLink
-              key={p.id}
-              icon="building"
-              title={p.name}
-              detail={p.address}
-              onPress={() => setDetail(p)}
-            />
-          ))}
+          {!!matches.length && (
+            <RecordGroup>
+              {matches.map((p, index) => (
+                <RecordLink
+                  key={p.id}
+                  grouped
+                  divider={index > 0}
+                  icon="building"
+                  title={p.name}
+                  detail={p.address}
+                  onPress={() => setDetail(p)}
+                />
+              ))}
+            </RecordGroup>
+          )}
           {!matches.length && (
             <EmptyState
               title="No matching properties"

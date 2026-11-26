@@ -2,7 +2,7 @@ import { useOwnerScope } from './Scope';
 import React, { useEffect } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Screen, Card, Button, EmptyState, ErrorState, LoadingState } from '../../components';
-import { MonthPicker, PropertyPicker, monthLabel } from './Controls';
+import { MonthPicker, PortfolioFilters, monthLabel } from './Controls';
 import { Highlight, Section } from './Overview';
 import { colors, currentMonth, money, percent, useOwnerPortfolio } from './portfolio';
 
@@ -47,7 +47,9 @@ export default function Finance({ navigation, route }) {
       onRefresh={reload}
       refreshing={status === 'loading'}
     >
-      <MonthPicker month={month} onChange={setMonth} latest={currentMonth()} />
+      {(status !== 'ready' || !data?.properties.length) && (
+        <MonthPicker month={month} onChange={setMonth} latest={currentMonth()} />
+      )}
       {status === 'loading' ? (
         <LoadingState />
       ) : status === 'error' ? (
@@ -60,24 +62,23 @@ export default function Finance({ navigation, route }) {
         />
       ) : (
         <>
-          <PropertyPicker
-            items={[{ id: null, name: 'All properties' }, ...data.properties]}
-            value={selected?.id ?? null}
-            onChange={setPropertyId}
+          <PortfolioFilters
+            properties={data.properties}
+            propertyId={selected?.id ?? null}
+            onPropertyChange={setPropertyId}
+            month={month}
+            onMonthChange={setMonth}
+            latest={currentMonth()}
           />
           <Highlight
             label="Receipts less recorded expenses"
             value={money(summary.netCashPaise)}
+            metrics={[
+              ['Rent received', money(summary.collectedPaise)],
+              ['Recorded expenses', money(summary.expensePaise)],
+            ]}
             detail={monthLabel(month) + ' · ' + (selected?.name || 'All properties')}
           />
-          <Card>
-            <Figures
-              rows={[
-                ['Rent received', money(summary.collectedPaise)],
-                ['Recorded expenses', money(summary.expensePaise)],
-              ]}
-            />
-          </Card>
           <Section>Rent for {monthLabel(month)}</Section>
           <Card>
             <Figures

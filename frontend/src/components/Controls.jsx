@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     maxWidth: '100%',
     justifyContent: 'center',
-    borderRadius: 12,
+    borderRadius: 22,
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: colors.soft,

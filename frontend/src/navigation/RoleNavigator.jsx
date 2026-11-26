@@ -1,5 +1,6 @@
 import { OwnerScopeProvider } from '../screens/owner/Scope';
 import React from 'react';
+import { View } from 'react-native';
 import Profile, { ManagerContact } from '../screens/common/Profile';
 import Finance from '../screens/owner/Finance';
 import Icon from '../screens/owner/Icon';
@@ -55,8 +56,24 @@ const ownerTabIcons = {
 function ownerTabOptions(name) {
   return {
     tabBarLabel: name === 'Dashboard' ? 'Home' : name,
-    tabBarIcon: ({ color, size }) => <Icon name={ownerTabIcons[name]} size={size - 2} color={color} />,
-    tabBarActiveTintColor: '#116556',
+    tabBarIcon: ({ color, focused, size }) => (
+      <View
+        style={{
+          width: 40,
+          height: 26,
+          borderRadius: 13,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: focused ? colors.soft : 'transparent',
+        }}
+      >
+        <Icon name={ownerTabIcons[name]} size={Math.min(20, size)} color={color} />
+      </View>
+    ),
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: colors.muted,
+    tabBarLabelStyle: { fontWeight: '600' },
+    tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
     tabBarHideOnKeyboard: true,
   };
 }
@@ -131,6 +148,7 @@ export default function RoleNavigator() {
               ? {
                   headerTitle: 'Starvega PG',
                   headerTintColor: colors.primary,
+                  headerStyle: { backgroundColor: colors.background },
                   headerShadowVisible: false,
                   headerBackButtonDisplayMode: 'minimal',
                 }

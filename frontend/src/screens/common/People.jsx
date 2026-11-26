@@ -1,5 +1,5 @@
 import TaskSheet from '../../components/TaskSheet';
-import RecordLink from '../../components/RecordLink';
+import RecordLink, { RecordGroup } from '../../components/RecordLink';
 import { PropertyPicker } from '../../components/Controls';
 import React, { useEffect, useState } from 'react';
 import { Text, Alert, Share } from 'react-native';
@@ -147,6 +147,18 @@ export default function People({ route }) {
   return (
     <Screen
       title={managers ? 'Managers' : 'Residents'}
+      action={
+        p.state === 'ready' && state === 'ready' && d && (!managers || owner) ? (
+          <Button
+            title={managers ? 'Invite manager' : 'Invite resident'}
+            disabled={busy}
+            onPress={() => {
+              reset();
+              setMode('invite');
+            }}
+          />
+        ) : undefined
+      }
       onRefresh={() => {
         p.reload();
         reload();
@@ -177,16 +189,6 @@ export default function People({ route }) {
             <LoadingState />
           ) : (
             <>
-              {!managers || owner ? (
-                <Button
-                  title={managers ? 'Invite manager' : 'Invite resident'}
-                  disabled={busy}
-                  onPress={() => {
-                    reset();
-                    setMode('invite');
-                  }}
-                />
-              ) : null}
               {managers && owner ? (
                 <Button
                   title="Assign existing manager"
@@ -352,21 +354,29 @@ export default function People({ route }) {
                 value={search}
                 onChangeText={setSearch}
               />
-              {matches.map((x) => {
-                const m = managers ? x : x.resident;
-                return (
-                  <RecordLink
-                    key={x.id}
-                    title={m.name}
-                    icon={managers ? 'user' : 'people'}
-                    detail={managers ? m.phone : 'Room ' + x.bed.room.label + ' · Bed ' + x.bed.label}
-                    onPress={() => {
-                      setError('');
-                      setPersonId(x.id);
-                    }}
-                  />
-                );
-              })}
+              {!!matches.length && (
+                <RecordGroup>
+                  {matches.map((x, index) => {
+                    const m = managers ? x : x.resident;
+                    return (
+                      <RecordLink
+                        grouped
+                        divider={index > 0}
+                        key={x.id}
+                        title={m.name}
+                        icon={managers ? 'user' : 'people'}
+                        detail={
+                          managers ? m.phone : 'Room ' + x.bed.room.label + ' · Bed ' + x.bed.label
+                        }
+                        onPress={() => {
+                          setError('');
+                          setPersonId(x.id);
+                        }}
+                      />
+                    );
+                  })}
+                </RecordGroup>
+              )}
               {d.items
                 .filter((x) => x.id === personId)
                 .map((x) => {

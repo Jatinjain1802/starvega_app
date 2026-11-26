@@ -2,11 +2,12 @@ import TaskSheet from '../../components/TaskSheet';
 import RecordLink from '../../components/RecordLink';
 import { displayName } from '../../components/Controls';
 import React, { useState, useCallback, useRef } from 'react';
-import { Text, Alert, Linking } from 'react-native';
+import { Text, Alert, Linking, View, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { Screen, Card, Button, TextField, LoadingState, ErrorState, EmptyState } from '../../components';
 import { api } from '../../api/client';
+import { colors, type } from '../../theme';
 import { logout } from '../../services/auth';
 export function ManagerContact() {
   const [state, setState] = useState({ loading: true }),
@@ -123,10 +124,26 @@ export default function Profile({ navigation }) {
   }
   return (
     <Screen title="Profile and settings">
-      <Card>
-        <Text style={{ fontWeight: '700', fontSize: 20 }}>{user.name}</Text>
-        <Text>{user.phone}</Text>
-        <Text>{displayName(user.role)}</Text>
+      <Card style={styles.identity}>
+        <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.seal}>
+          <Text style={styles.initials}>
+            {user.name
+              .trim()
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((word) => word[0])
+              .join('')
+              .toUpperCase()}
+          </Text>
+        </View>
+        <View style={styles.identityText}>
+          <Text style={styles.role}>{displayName(user.role)}</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text selectable style={styles.phone}>
+            {user.phone}
+          </Text>
+        </View>
       </Card>
       {error ? <Text accessibilityLiveRegion="polite">{error}</Text> : null}
       {editing ? (
@@ -210,3 +227,21 @@ export default function Profile({ navigation }) {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 24 },
+  seal: {
+    width: 56,
+    minHeight: 56,
+    paddingVertical: 5,
+    borderRadius: 28,
+    backgroundColor: colors.deep,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initials: { ...type.section, color: colors.accent },
+  identityText: { flex: 1, gap: 3 },
+  name: { ...type.section, color: colors.text },
+  role: { ...type.caption, color: colors.brass },
+  phone: { fontSize: 15, color: colors.muted },
+});

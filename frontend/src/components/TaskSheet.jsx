@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../theme';
+import { colors, type } from '../theme';
 
 export default function TaskSheet({ title, context, onClose, busy = false, message, children }) {
   return (
@@ -71,14 +71,16 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   heading: { flex: 1, gap: 3 },
-  title: { fontSize: 22, fontWeight: '700', color: colors.text },
-  context: { fontSize: 13, color: colors.muted },
+  title: { ...type.section, color: colors.text },
+  context: { ...type.caption, color: colors.brass },
   close: {
     minWidth: 52,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 9,
+    paddingHorizontal: 13,
+    backgroundColor: colors.soft,
+    borderRadius: 22,
   },
   closeLabel: { fontWeight: '700', color: colors.primary },
   body: { width: '100%', maxWidth: 680, alignSelf: 'center', padding: 18, paddingBottom: 32, gap: 14 },

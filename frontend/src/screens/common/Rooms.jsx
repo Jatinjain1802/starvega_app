@@ -105,6 +105,18 @@ export default function Rooms({ route }) {
   return (
     <Screen
       title="Rooms and beds"
+      action={
+        state === 'ready' && selected ? (
+          <Button
+            title="Create room"
+            disabled={busy}
+            onPress={() => {
+              setForm(true);
+              setError('');
+            }}
+          />
+        ) : undefined
+      }
       onRefresh={reload}
       refreshing={state === 'loading' || (!!selected && status === 'loading')}
     >
@@ -129,16 +141,7 @@ export default function Rooms({ route }) {
               setQuery('');
             }}
           />
-          {selected ? (
-            <Button
-              title="Create room"
-              disabled={busy}
-              onPress={() => {
-                setForm(true);
-                setError('');
-              }}
-            />
-          ) : null}
+
           {form ? (
             <TaskSheet
               title="Create room"

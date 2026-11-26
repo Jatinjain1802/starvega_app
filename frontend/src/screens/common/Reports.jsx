@@ -1,3 +1,4 @@
+import { colors } from '../../theme';
 import { useReportingMonth } from '../owner/Scope';
 import { PropertyPicker, MonthPicker, Choices } from '../../components/Controls';
 import React, { useCallback, useState } from 'react';
@@ -166,8 +167,10 @@ export default function Reports({ route }) {
                           gap: 6,
                         }}
                       >
-                        <Text style={{ color: '#50675F' }}>{columnLabel(c)}</Text>
-                        <Text style={{ fontWeight: '600', color: '#182F2A' }}>{format(c, row[j])}</Text>
+                        <Text style={{ color: colors.muted }}>{columnLabel(c)}</Text>
+                        <Text style={{ fontWeight: '600', color: colors.text }}>
+                          {format(c, row[j])}
+                        </Text>
                       </View>
                     ))}
                   </Card>
