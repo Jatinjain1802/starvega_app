@@ -5,8 +5,10 @@ import { createApp } from './app.js';
 const port = Number(process.env.PORT ?? 3000);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid PORT');
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret || Buffer.byteLength(jwtSecret) < 32) throw new Error('JWT_SECRET must be at least 32 bytes');
 const db = new PrismaClient();
-const server = createApp({ db }).listen(port, () => console.log(`API listening on ${port}`));
+const server = createApp({ db, jwtSecret }).listen(port, () => console.log(`API listening on ${port}`));
 let stopping = false;
 function shutdown() {
   if (stopping) return;
