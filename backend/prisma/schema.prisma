@@ -22,6 +22,8 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  announcements Announcement[]
+  announcementReads AnnouncementRead[]
   complaints Complaint[]
   complaintLikes ComplaintLike[]
   complaintEvents ComplaintEvent[]
@@ -37,6 +39,7 @@ model Property {
   address String
   rooms Room[]
   managers ManagerAssignment[]
+  announcements Announcement[]
   complaints Complaint[]
   rentDues RentDue[]
   monthlyRentPaise Int?
@@ -196,4 +199,39 @@ model ComplaintEvent {
   note String?
   createdAt DateTime @default(now())
   @@index([complaintId, createdAt])
+}
+
+enum AnnouncementCategory {
+  GENERAL
+  FOOD
+  ELECTRICITY
+  WATER
+  MAINTENANCE
+  EMERGENCY
+}
+model Announcement {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  authorId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  title String
+  body String
+  category AnnouncementCategory
+  pinned Boolean @default(false)
+  publishAt DateTime @default(now())
+  expiresAt DateTime?
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reads AnnouncementRead[]
+  @@index([propertyId, publishAt])
+}
+model AnnouncementRead {
+  announcementId String @db.Uuid
+  userId String @db.Uuid
+  announcement Announcement @relation(fields: [announcementId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  readAt DateTime @default(now())
+  @@id([announcementId, userId])
 }
