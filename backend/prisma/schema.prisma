@@ -22,6 +22,7 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  expenses Expense[]
   announcements Announcement[]
   announcementReads AnnouncementRead[]
   complaints Complaint[]
@@ -39,6 +40,7 @@ model Property {
   address String
   rooms Room[]
   managers ManagerAssignment[]
+  expenses Expense[]
   announcements Announcement[]
   complaints Complaint[]
   rentDues RentDue[]
@@ -234,4 +236,44 @@ model AnnouncementRead {
   user User @relation(fields: [userId], references: [id])
   readAt DateTime @default(now())
   @@id([announcementId, userId])
+}
+
+enum ExpenseCategory {
+  GROCERY
+  MAINTENANCE
+  ELECTRICITY
+  WATER
+  SALARY
+  RENT
+  INTERNET
+  CLEANING
+  OTHER
+}
+model Expense {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  authorId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  category ExpenseCategory
+  description String
+  vendor String?
+  paymentMethod String
+  incurredAt DateTime
+  totalPaise Int
+  requestKey String
+  createdAt DateTime @default(now())
+  items ExpenseItem[]
+  @@unique([propertyId, requestKey])
+  @@index([propertyId, incurredAt])
+}
+model ExpenseItem {
+  id String @id @default(uuid()) @db.Uuid
+  expenseId String @db.Uuid
+  expense Expense @relation(fields: [expenseId], references: [id])
+  name String
+  unit String
+  quantityMilli Int
+  unitPricePaise Int
+  totalPaise Int
 }
