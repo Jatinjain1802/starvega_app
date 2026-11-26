@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createPeopleRouter } from './people.js';
 import { createRoomRouter } from './rooms.js';
 import { authenticate, requireRole } from '../auth/middleware.js';
 import { propertyScope } from './access.js';
@@ -9,6 +10,7 @@ export function createPropertyRouter(db, secret) {
   const router = Router();
   router.use(authenticate(db,secret));
   router.use('/:id/rooms',createRoomRouter(db));
+  router.use('/:id/people',createPeopleRouter(db));
   router.get('/',async (req,res) => {
     const cursor = req.query.cursor;
     if (cursor !== undefined && (typeof cursor !== 'string' || !uuid.test(cursor))) return res.status(400).json({error:'INVALID_CURSOR'});
