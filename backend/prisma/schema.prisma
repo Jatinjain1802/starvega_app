@@ -23,6 +23,7 @@ model User {
   allocations Allocation[]
   sessions Session[]
   notifications Notification[]
+  devices PushDevice[]
   maintenanceTasks MaintenanceTask[]
   maintenanceEvents MaintenanceEvent[]
   expenses Expense[]
@@ -343,7 +344,18 @@ model Notification {
   body String
   dedupeKey String
   readAt DateTime?
+  pushProcessedAt DateTime?
   createdAt DateTime @default(now())
   @@unique([userId, dedupeKey])
   @@index([userId, createdAt])
+}
+
+model PushDevice {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  token String @unique
+  platform String
+  updatedAt DateTime @updatedAt
+  @@index([userId])
 }
