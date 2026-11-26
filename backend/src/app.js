@@ -1,4 +1,5 @@
 import express from 'express';
+import { createResidentRouter } from './modules/residents/routes.js';
 import helmet from 'helmet';
 import { createPropertyRouter } from './modules/properties/routes.js';
 import { createAuthRouter } from './modules/auth/routes.js';
@@ -19,6 +20,7 @@ export function createApp({ db, jwtSecret }) {
   });
   if (jwtSecret) app.use('/api/v1/auth', createAuthRouter(db, jwtSecret));
   if (jwtSecret) app.use('/api/v1/properties', createPropertyRouter(db, jwtSecret));
+  if (jwtSecret) app.use('/api/v1/resident', createResidentRouter(db, jwtSecret));
   app.use((_req, res) => res.status(404).json({ error: 'NOT_FOUND' }));
   app.use((err, _req, res, _next) => {
     const status = err.status === 400 || err.status === 413 ? err.status : 500;
