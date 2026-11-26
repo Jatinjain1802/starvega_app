@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { acceptInvitation } from './invitations.js';
 import jwt from 'jsonwebtoken';
 import { randomBytes, createHash } from 'node:crypto';
 import { rateLimit } from 'express-rate-limit';
@@ -18,6 +19,7 @@ export function createAuthRouter(db, secret) {
   const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false });
   const access = (user, sid) => jwt.sign({ sid }, secret, { ...claims, subject: user.id, algorithm: 'HS256', expiresIn: '15m' });
   const respond = (res, user, sid, refreshToken) => res.set('Cache-Control', 'no-store').json({ user: publicUser(user), accessToken: access(user, sid), refreshToken });
+  router.post('/invitations/accept', limiter, acceptInvitation(db));
   router.post('/login', limiter, async (req, res) => {
     const { phone, password } = req.body ?? {};
     if (typeof phone !== 'string' || !/^\+91[6-9]\d{9}$/.test(phone) || typeof password !== 'string' || password.length > 128) return res.status(400).json({ error: 'INVALID_INPUT' });
