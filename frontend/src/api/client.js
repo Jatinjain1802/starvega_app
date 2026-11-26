@@ -5,5 +5,6 @@ let accessToken=null;
 export function setAccessToken(token){accessToken=token;}
 api.interceptors.request.use(config=>{
  if(accessToken)config.headers.Authorization='Bearer '+accessToken;
+ else delete config.headers.Authorization;
  return config;
 });
