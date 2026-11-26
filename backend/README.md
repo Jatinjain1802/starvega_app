@@ -26,7 +26,9 @@ Do not rerun the constraint SQL blindly: named CHECK constraints are not idempot
 
 ## Optional development seed
 
-On the empty local starvega database, set NODE_ENV=development, ALLOW_DEMO_SEED=yes and DEMO_PASSWORD to a private 12–128 character password in your local .env. Then:
+Use a development database with the Starvega schema and an empty `User` table. In `backend/.env`, set `NODE_ENV=development`, `ALLOW_DEMO_SEED=yes`, and `DEMO_PASSWORD` to a private 12–128 character password. The local `starvega` database works with these settings.
+
+For Neon, also set `DEMO_SEED_TARGET` to the host (including the port if specified) and database path from `DATABASE_URL`, for example `DEMO_SEED_TARGET=ep-example-pooler.us-east-2.aws.neon.tech/neondb`. Omit the scheme, credentials, and query string. Run from `backend/`:
 
 ```sh
 npm run db:seed:demo

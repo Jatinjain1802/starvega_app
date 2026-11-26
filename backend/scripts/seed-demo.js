@@ -3,8 +3,13 @@ import {PrismaClient} from '@prisma/client';
 import {createHash} from 'node:crypto';
 import {hashPassword} from '../src/modules/auth/password.js';
 if(process.env.NODE_ENV!=='development'||process.env.ALLOW_DEMO_SEED!=='yes')throw Error('Explicit development seed opt-in required');
-const url=new URL(process.env.DATABASE_URL);
-if(!['localhost','127.0.0.1','[::1]'].includes(url.hostname)||url.pathname!=='/starvega')throw Error('Seed requires local starvega database');
+const url = new URL(process.env.DATABASE_URL);
+const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) && url.pathname === '/starvega';
+const target = url.host + url.pathname;
+const selectedNeon = url.hostname.endsWith('.neon.tech') && process.env.DEMO_SEED_TARGET === target;
+if (!local && !selectedNeon) {
+  throw Error('Demo seed requires local starvega or a Neon database selected by DEMO_SEED_TARGET=host/database');
+}
 const password=process.env.DEMO_PASSWORD;
 if(!password||password.length<12||password.length>128)throw Error('Set DEMO_PASSWORD (12–128 characters)');
 const db=new PrismaClient();
