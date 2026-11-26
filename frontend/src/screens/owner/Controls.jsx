@@ -22,7 +22,7 @@ export function PropertyPicker({ items, value, onChange, disabled = false }) {
       {canSwitch && <Icon name="down" size={18} />}
     </Pressable>
     {expanded && canSwitch && items.map(p => <Pressable key={p.id ?? 'all'} disabled={disabled}
-      accessibilityRole="radio" accessibilityState={{ selected: value === p.id, disabled }}
+      accessibilityRole="radio" accessibilityState={{ checked: value === p.id, disabled }}
       style={[styles.option, value === p.id && styles.selected]} onPress={() => choose(p.id)}>
       <Text style={value === p.id ? styles.selectedText : styles.label}>{p.name}</Text>
       {!!p.address && <Text style={value === p.id ? styles.selectedText : styles.caption}>{p.address}</Text>}

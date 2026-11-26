@@ -1,24 +1,166 @@
-import React,{useState} from 'react';
-import {Text,Alert} from 'react-native';
-import {useSelector} from 'react-redux';
-import {Screen,Card,Button,TextField,LoadingState,ErrorState,EmptyState} from '../../components';
+import { useOwnerScope } from '../owner/Scope';
+import React, { useState } from 'react';
+import { Text } from 'react-native';
+import { useSelector } from 'react-redux';
+import { Screen, Card, Button, TextField, LoadingState, ErrorState, EmptyState } from '../../components';
+import RecordLink from '../../components/RecordLink';
+import TaskSheet from '../../components/TaskSheet';
+import { Shortcuts } from '../owner/Overview';
+import { colors } from '../../theme';
 import useProperties from '../../hooks/useProperties';
-import {api} from '../../api/client';
-export default function Properties({navigation}){
- const owner=useSelector(s=>s.auth.user.role)==='OWNER';
- const {items,state,reload}=useProperties();
- const [form,setForm]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- const edit=p=>{setError('');setForm(p?{...p}:{name:'',address:''});};
- async function save(){
-  if(busy||!owner||!form)return;
-  const name=form.name.trim(),address=form.address.trim();
-  if(!name||name.length>120||!address||address.length>500){setError('Enter a valid property name and address.');return;}
-  setBusy(true);setError('');
-  try{if(form.id)await api.patch('/properties/'+form.id,{name,address});else await api.post('/properties',{name,address});setForm(null);reload();}catch{setError('Unable to save property. Refresh before retrying if the request timed out.');}finally{setBusy(false);}
- }
- return <Screen title="Properties" subtitle={owner?'Your PG properties':'Assigned PG properties'} onRefresh={reload} refreshing={state==='loading'}>
- {owner&&!form?<Button title="Add PG property" onPress={()=>edit(null)}/>:null}
- {owner&&form?<Card><Text>{form.id?'Edit property':'New property'}</Text><TextField label="PG name" value={form.name} maxLength={120} editable={!busy} onChangeText={name=>setForm(f=>({...f,name}))}/><TextField label="Address" value={form.address} maxLength={500} multiline editable={!busy} onChangeText={address=>setForm(f=>({...f,address}))}/>{error?<Text>{error}</Text>:null}<Button title="Save property" loading={busy} onPress={save}/><Button title="Cancel" variant="secondary" disabled={busy} onPress={()=>setForm(null)}/></Card>:null}
- {state==='loading'?<LoadingState/>:state==='error'?<ErrorState onRetry={reload}/>:!items.length?<EmptyState title="No properties available"/>:items.map(p=><Card key={p.id}><Text style={{fontSize:18,fontWeight:'700'}}>{p.name}</Text><Text>{p.address}</Text><Button title="View rooms and beds" onPress={()=>navigation.navigate('Rooms',{propertyId:p.id})}/>{owner?<Button title="Edit property" variant="secondary" disabled={busy} onPress={()=>edit(p)}/>:null}</Card>)}
- </Screen>;
+import { api } from '../../api/client';
+
+export default function Properties({ navigation }) {
+  const scope = useOwnerScope();
+  const owner = useSelector((s) => s.auth.user.role) === 'OWNER';
+  const { items, state, reload } = useProperties();
+  const [search, setSearch] = useState('');
+  const [detail, setDetail] = useState(null);
+  const [form, setForm] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [attempted, setAttempted] = useState(false);
+  const matches = items.filter((p) =>
+    (p.name + ' ' + p.address).toLowerCase().includes(search.trim().toLowerCase())
+  );
+  function edit(property) {
+    setDetail(null);
+    setAttempted(false);
+    setError('');
+    setForm(property ? { ...property } : { name: '', address: '' });
+  }
+  async function save() {
+    if (busy || !owner || !form) return;
+    setAttempted(true);
+    const name = form.name.trim(),
+      address = form.address.trim();
+    if (!name || !address) return;
+    setBusy(true);
+    setError('');
+    try {
+      if (form.id) await api.patch('/properties/' + form.id, { name, address });
+      else await api.post('/properties', { name, address });
+      setForm(null);
+      setSearch('');
+      reload();
+    } catch {
+      setError(
+        'Could not confirm the save. Check your connection and refresh the property list before trying again.'
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  function openModule(name) {
+    const id = detail.id;
+    scope?.setPropertyId(id);
+    setDetail(null);
+    navigation.navigate(name, { propertyId: id });
+  }
+  return (
+    <Screen
+      title="Properties"
+      subtitle={
+        items.length ? items.length + ' ' + (items.length === 1 ? 'property' : 'properties') : undefined
+      }
+      refreshing={state === 'loading'}
+      onRefresh={reload}
+    >
+      {owner && <Button title="Add property" onPress={() => edit(null)} />}
+      {state === 'loading' ? (
+        <LoadingState />
+      ) : state === 'error' ? (
+        <ErrorState onRetry={reload} />
+      ) : !items.length ? (
+        <EmptyState
+          title="No properties yet"
+          message={
+            owner
+              ? 'Add your first PG to set up rooms and invite residents.'
+              : 'Your assigned properties will appear here.'
+          }
+        />
+      ) : (
+        <>
+          {(items.length > 1 || !!search) && (
+            <TextField
+              label="Find a property"
+              placeholder="Property name or address"
+              value={search}
+              onChangeText={setSearch}
+              returnKeyType="search"
+            />
+          )}
+          {matches.map((p) => (
+            <RecordLink
+              key={p.id}
+              icon="building"
+              title={p.name}
+              detail={p.address}
+              onPress={() => setDetail(p)}
+            />
+          ))}
+          {!matches.length && (
+            <EmptyState
+              title="No matching properties"
+              actionLabel="Clear search"
+              onAction={() => setSearch('')}
+            />
+          )}
+        </>
+      )}
+      {detail && (
+        <TaskSheet title={detail.name} context="Property" onClose={() => setDetail(null)}>
+          <Card>
+            <Text style={{ color: colors.muted }}>Address</Text>
+            <Text style={{ color: colors.text, fontSize: 17 }}>{detail.address}</Text>
+          </Card>
+          <Shortcuts
+            items={
+              owner
+                ? [
+                    ['Rooms', 'Rooms & beds', 'room'],
+                    ['Residents', 'Residents', 'people'],
+                    ['Managers', 'Managers', 'user'],
+                    ['Rent', 'Rent collection', 'finance'],
+                    ['Reports', 'Reports', 'chart'],
+                  ]
+                : [['Rooms', 'Rooms & beds', 'room']]
+            }
+            onSelect={openModule}
+          />
+          {owner && <Button title="Edit property" variant="secondary" onPress={() => edit(detail)} />}
+        </TaskSheet>
+      )}
+      {owner && form && (
+        <TaskSheet
+          title={form.id ? 'Edit property' : 'Add property'}
+          busy={busy}
+          message={error}
+          onClose={() => setForm(null)}
+        >
+          <TextField
+            label="Property name"
+            placeholder="Name of your PG"
+            maxLength={120}
+            value={form.name}
+            editable={!busy}
+            onChangeText={(name) => setForm((f) => ({ ...f, name }))}
+            error={attempted && !form.name.trim() ? 'Enter a property name.' : undefined}
+          />
+          <TextField
+            label="Address"
+            placeholder="Street, area and city"
+            multiline
+            maxLength={500}
+            value={form.address}
+            editable={!busy}
+            onChangeText={(address) => setForm((f) => ({ ...f, address }))}
+            error={attempted && !form.address.trim() ? 'Enter the property address.' : undefined}
+          />
+          <Button title={form.id ? 'Save changes' : 'Create property'} loading={busy} onPress={save} />
+        </TaskSheet>
+      )}
+    </Screen>
+  );
 }

@@ -22,6 +22,7 @@
     "buffer": "^6.0.3",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-file-access": "3.2.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-image-picker": "^8.2.0",
     "react-native-keychain": "^10.0.0",
@@ -38,7 +39,7 @@
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
     "@react-native/babel-preset": "0.81.5",
-    "@react-native/metro-config": "0.81.5",
-    "@react-native/community-cli-plugin": "0.81.5"
+    "@react-native/community-cli-plugin": "0.81.5",
+    "@react-native/metro-config": "0.81.5"
   }
 }
