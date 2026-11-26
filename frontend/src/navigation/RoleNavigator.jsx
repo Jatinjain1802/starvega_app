@@ -1,4 +1,5 @@
 import React from 'react';
+import Maintenance from '../screens/common/Maintenance';
 import Announcements from '../screens/common/Announcements';
 import Expenses from '../screens/common/Expenses';
 import Complaints from '../screens/common/Complaints';
@@ -35,5 +36,5 @@ function RoleTabs(){
 export default function RoleNavigator(){
  const user=useSelector(s=>s.auth.user);
  if(!user||!menus[user.role])return <Screen title="Account unavailable"><Button title="Sign out" onPress={logout}/></Screen>;
- return <NavigationContainer key={user.id+':'+user.role}><Stack.Navigator><Stack.Screen name="Main" component={RoleTabs} options={{headerShown:false}}/>{extras[user.role].map(name=><Stack.Screen key={name} name={name} component={name==='Announcements'?Announcements:name==='ExpenseDetails'?Expenses:name==='Rooms'?Rooms:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(user.role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Stack.Navigator></NavigationContainer>;
+ return <NavigationContainer key={user.id+':'+user.role}><Stack.Navigator><Stack.Screen name="Main" component={RoleTabs} options={{headerShown:false}}/>{extras[user.role].map(name=><Stack.Screen key={name} name={name} component={name==='Maintenance'?Maintenance:name==='Announcements'?Announcements:name==='ExpenseDetails'?Expenses:name==='Rooms'?Rooms:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(user.role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Stack.Navigator></NavigationContainer>;
 }
