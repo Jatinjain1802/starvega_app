@@ -1,6 +1,8 @@
 import React from 'react';
 import Profile,{ManagerContact} from '../screens/common/Profile';
-import Reports,{Finance} from '../screens/common/Reports';
+import Finance from '../screens/owner/Finance';
+import Icon from '../screens/owner/Icon';
+import Reports from '../screens/common/Reports';
 import Notifications from '../screens/common/Notifications';
 import Maintenance from '../screens/common/Maintenance';
 import Announcements from '../screens/common/Announcements';
@@ -28,9 +30,18 @@ function ModuleScreen({route,navigation}){
  const user=useSelector(s=>s.auth.user);
  return <Screen title={route.name} subtitle={user.name}><Card><Text>Module under development.</Text></Card>{['Dashboard','Home'].includes(route.name)?extras[user.role].map(name=><Button key={name} title={name} variant="secondary" onPress={()=>navigation.navigate(name)}/>):null}</Screen>;
 }
+const ownerTabIcons = {Dashboard: 'home', Properties: 'building', Finance: 'finance', Complaints: 'chat', Profile: 'user'};
+function ownerTabOptions(name) {
+ return {
+  tabBarLabel: name === 'Dashboard' ? 'Home' : name,
+  tabBarIcon: ({color, size}) => <Icon name={ownerTabIcons[name]} size={size - 2} color={color}/>,
+  tabBarActiveTintColor: '#116556',
+  tabBarHideOnKeyboard: true,
+ };
+}
 function RoleTabs(){
  const role=useSelector(s=>s.auth.user.role);
- return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:name==='Finance'?Finance:name==='Updates'?Announcements:name==='Expenses'?Expenses:name==='Complaints'?Complaints:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Tabs.Navigator>;
+ return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} options={role==='OWNER' ? ownerTabOptions(name) : undefined} component={name==='Profile'?Profile:name==='Finance'?Finance:name==='Updates'?Announcements:name==='Expenses'?Expenses:name==='Complaints'?Complaints:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Tabs.Navigator>;
 }
 export default function RoleNavigator(){
  const user=useSelector(s=>s.auth.user);

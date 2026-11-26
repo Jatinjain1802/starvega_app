@@ -1,30 +1,63 @@
-import React,{useCallback,useEffect,useState} from 'react';
-import {View,Text,Pressable,StyleSheet} from 'react-native';
-import {Screen,Card,StatCard,Button,LoadingState,ErrorState,EmptyState} from '../../components';
-import {api} from '../../api/client';
-import {colors,spacing} from '../../theme';
-const money=n=>'₹'+(Number(n||0)/100).toLocaleString('en-IN',{maximumFractionDigits:2});
-const percent=n=>n==null?'—':n+'%';
-const currentMonth=()=>{const d=new Date(Date.now()+19800000);return d.toISOString().slice(0,7);};
-function shift(month,delta){const [y,m]=month.split('-').map(Number);return new Date(Date.UTC(y,m-1+delta,1)).toISOString().slice(0,7);}
-export default function OwnerDashboard({navigation}){
- const [month,setMonth]=useState(currentMonth),[property,setProperty]=useState(null),[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(false),[revision,setRevision]=useState(0);
- const reload=useCallback(()=>setRevision(n=>n+1),[]);
- useEffect(()=>{
-  const controller=new AbortController();setLoading(true);setError(false);
-  api.get('/owner/finance',{params:{month},signal:controller.signal}).then(({data:d})=>{if(!controller.signal.aborted){setData(d);setProperty(p=>d.properties.some(x=>x.id===p)?p:null);}}).catch(()=>{if(!controller.signal.aborted){setError(true);setData(null);}}).finally(()=>{if(!controller.signal.aborted)setLoading(false);});
-  return ()=>controller.abort();
- },[month,revision]);
- const summary=property?data?.properties.find(p=>p.id===property):data?.totals;
- return <Screen title="Owner dashboard" subtitle="Your PG portfolio" refreshing={loading} onRefresh={reload} action={<Button title="Updates" variant="secondary" onPress={()=>navigation.navigate('Notifications')}/>}>
- <Card><View style={styles.row}><Button title="Previous" variant="secondary" disabled={month==='2000-01'} onPress={()=>setMonth(m=>shift(m,-1))}/><Text style={styles.heading}>{month}</Text><Button title="Next" variant="secondary" disabled={month>=currentMonth()} onPress={()=>setMonth(m=>shift(m,1))}/></View></Card>
- {loading?<LoadingState/>:error?<ErrorState onRetry={reload}/>:!data?.properties.length?<EmptyState title="No properties yet" actionLabel="Manage properties" onAction={()=>navigation.navigate('Properties')}/>:<>
- <Card><Text style={styles.heading}>Select property</Text>{[{id:null,name:'All properties'},...data.properties].map(p=><Pressable key={p.id||'all'} accessibilityRole="button" accessibilityState={{selected:property===p.id}} onPress={()=>setProperty(p.id)} style={[styles.option,property===p.id&&styles.selected]}><Text style={styles.label}>{p.name}</Text>{p.address?<Text style={styles.muted}>{p.address}</Text>:null}</Pressable>)}</Card>
- {summary?<><Text style={styles.heading}>Monthly financial overview</Text><View style={styles.grid}>{[['Rent received',money(summary.collectedPaise)],['Expenses',money(summary.expensePaise)],['Receipts less recorded expenses',money(summary.netCashPaise)],['Outstanding rent',money(summary.outstandingPaise)],['Rent billed',money(summary.billedPaise)],['Collection rate',percent(summary.collectionPercent)],['Maintenance',money(summary.maintenancePaise)]].map(([label,value])=><StatCard key={label} label={label} value={value} style={styles.stat}/>)}</View>
- <Text style={styles.heading}>Current occupancy</Text><View style={styles.grid}>{[['Total rooms',summary.rooms],['Occupied rooms',summary.occupiedRooms],['Vacant rooms',summary.rooms-summary.occupiedRooms],['Occupied beds',summary.occupiedBeds],['Vacant beds',summary.beds-summary.occupiedBeds],['Bed occupancy',percent(summary.occupancyPercent)]].map(([label,value])=><StatCard key={label} label={label} value={String(value)} style={styles.stat}/>)}</View></>:null}
- <Text style={styles.heading}>Property comparison</Text>{data.properties.map(p=><Card key={p.id}><Text style={styles.heading}>{p.name}</Text><Text style={styles.muted}>{p.address}</Text><Text style={styles.label}>Received: {money(p.collectedPaise)}</Text><Text style={styles.label}>Expenses: {money(p.expensePaise)}</Text><Text style={styles.label}>Outstanding: {money(p.outstandingPaise)}</Text><Text style={styles.label}>Occupancy: {percent(p.occupancyPercent)}</Text></Card>)}
- </>}
- <Text style={styles.heading}>Quick access</Text>{['Properties','Finance','Complaints','Reports','Rooms','Residents','Rent','Managers','Maintenance','Announcements','ExpenseDetails'].map(name=><Button key={name} title={name} variant="secondary" onPress={()=>navigation.navigate(name,property?{propertyId:property}:undefined)}/>)}
- </Screen>;
+import React, { useState } from 'react';
+import { Text, View, StyleSheet } from 'react-native';
+import { Screen, Card, StatCard, LoadingState, ErrorState, EmptyState, Button } from '../../components';
+import { Highlight, Shortcuts, Section, NotificationButton } from './Overview';
+import { MonthPicker, PropertyPicker, monthLabel } from './Controls';
+import { colors, currentMonth, money, percent, useOwnerPortfolio } from './portfolio';
+
+const frequent = [
+  ['Rent', 'Rent collection', 'finance'], ['ExpenseDetails', 'Expenses', 'receipt'],
+  ['Rooms', 'Rooms & beds', 'room'], ['Residents', 'Residents', 'people']
+];
+const management = [
+  ['Properties', 'Properties', 'building'], ['Managers', 'Managers', 'user'],
+  ['Maintenance', 'Maintenance', 'tool'], ['Announcements', 'Announcements', 'bell'],
+  ['Complaints', 'Complaints', 'chat'], ['Reports', 'Reports', 'chart']
+];
+
+export default function OwnerDashboard({ navigation }) {
+  const [month, setMonth] = useState(currentMonth);
+  const [propertyId, setPropertyId] = useState(null);
+  const [more, setMore] = useState(false);
+  const { status, data, reload } = useOwnerPortfolio(month);
+  const selected = data?.properties.find(p => p.id === propertyId);
+  const summary = selected || data?.totals;
+  function open(name) {
+    navigation.navigate(name, { propertyId: data ? selected?.id ?? null : propertyId, ...(['Finance', 'Reports'].includes(name) ? { month } : {}) });
+  }
+
+  return <Screen title="Portfolio overview" subtitle="Starvega PG · Owner" onRefresh={reload} refreshing={status === 'loading'}
+    action={<NotificationButton onPress={() => navigation.navigate('Notifications')}/>}>
+    <MonthPicker month={month} onChange={setMonth} latest={currentMonth()}/>
+    {status === 'loading' ? <LoadingState message="Loading your portfolio…"/> :
+      status === 'error' ? <ErrorState onRetry={reload}/> :
+      !data.properties.length ? <EmptyState title="Add your first property" message="Set up your PG to start managing rooms and tracking rent."
+        actionLabel="Manage properties" onAction={() => open('Properties')}/> : <>
+        <PropertyPicker items={[{ id: null, name: 'All properties' }, ...data.properties]} value={selected?.id ?? null} onChange={setPropertyId}/>
+        <Highlight label="Rent received" value={money(summary.collectedPaise)}
+          detail={monthLabel(month) + ' · ' + (selected?.name || 'All properties')} action="View finances" onPress={() => open('Finance')}/>
+        <View style={styles.grid}>
+          <StatCard label="Outstanding rent" value={money(summary.outstandingPaise)} style={styles.stat}/>
+          <StatCard label="Recorded expenses" value={money(summary.expensePaise)} style={styles.stat}/>
+        </View>
+        <Section>Current occupancy</Section>
+        <Card><View style={styles.row}><Text style={styles.heading}>{summary.occupiedBeds} of {summary.beds} beds occupied</Text>
+          {summary.occupancyPercent != null && <Text style={styles.rate}>{percent(summary.occupancyPercent)}</Text>}</View>
+          <View style={styles.track}><View style={[styles.fill, { width: Math.min(100, Math.max(0, summary.occupancyPercent || 0)) + '%' }]}/></View>
+          <Text style={styles.muted}>{summary.beds - summary.occupiedBeds} vacant beds · {summary.rooms - summary.occupiedRooms} vacant rooms</Text>
+          <Text style={styles.muted}>{summary.occupiedRooms} of {summary.rooms} rooms occupied</Text>
+        </Card>
+      </>}
+    <Section>Quick actions</Section>
+    <Shortcuts items={more ? [...frequent, ...management] : frequent} onSelect={open}/>
+    <Button title={more ? 'Show fewer tools' : 'All management tools'} variant="secondary" onPress={() => setMore(!more)}/>
+  </Screen>;
 }
-const styles=StyleSheet.create({row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:spacing.sm},heading:{fontSize:17,fontWeight:'700',color:colors.text},label:{color:colors.text,fontSize:14},muted:{color:colors.muted,fontSize:13},option:{padding:spacing.sm,borderRadius:8,borderWidth:1,borderColor:colors.border},selected:{borderColor:colors.primary,backgroundColor:'#E4F4EA'},grid:{flexDirection:'row',flexWrap:'wrap',gap:spacing.sm},stat:{width:'48%',flexGrow:1}});
+
+const styles = StyleSheet.create({
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, stat: { flexGrow: 1, flexBasis: 140 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 6 },
+  heading: { color: colors.text, fontWeight: '700', fontSize: 16 }, muted: { color: colors.muted, fontSize: 14 },
+  rate: { fontWeight: '700', color: colors.primary }, track: { height: 8, borderRadius: 4, backgroundColor: colors.soft, overflow: 'hidden' },
+  fill: { height: 8, borderRadius: 4, backgroundColor: colors.primary }
+});
