@@ -42,3 +42,13 @@ npm run dev
 ```
 
 Check http://localhost:3000/api/v1/health and http://localhost:3000/api/v1/ready. The readiness endpoint checks PostgreSQL. Test all roles, authorization, concurrent allocations, payments and receipts locally. Seed, schema initialization and tests have not been executed in this development session.
+
+## Demo API smoke checks
+
+After seeding and starting the server, open a second terminal in backend/ and run:
+
+```sh
+npm run test:smoke:demo
+```
+
+Uses the same local .env and demo password, loopback HTTP only, and the untouched demo property assignments. Checks health, readiness, role login, property isolation, owner-only finance, manager-only expense creation authorization, resident dashboard/rent and notifications. It creates login sessions and attempts to revoke them in finally; it does not create financial transactions. Run before modifying demo data. A failed assertion sets a nonzero exit code. This is not a full integration or security test. Concurrent allocations, receipt uploads, payment webhooks and native integrations require separate tests.
