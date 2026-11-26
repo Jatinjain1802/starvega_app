@@ -22,6 +22,7 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  recordedPayments RentPayment[] @relation("PaymentRecorder")
   rentDues RentDue[]
   invitations Invitation[] @relation("Inviter")
 }
@@ -123,6 +124,9 @@ model RentPayment {
   rentDue RentDue @relation(fields: [rentDueId], references: [id])
   amountPaise Int
   reference String @unique
+  method PaymentMethod @default(ONLINE)
+  recordedById String? @db.Uuid
+  recordedBy User? @relation("PaymentRecorder", fields: [recordedById], references: [id])
   paidAt DateTime @default(now())
   @@index([rentDueId])
 }
@@ -135,4 +139,10 @@ model PaymentOrder {
   amountPaise Int
   createdAt DateTime @default(now())
   capturedAt DateTime?
+}
+
+enum PaymentMethod {
+  ONLINE
+  CASH
+  BANK_TRANSFER
 }
