@@ -1,3 +1,4 @@
+import { notify } from '../notifications/routes.js';
 import { propertyScope } from '../properties/access.js';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const select={id:true,amountPaise:true,reference:true,method:true,paidAt:true,recordedById:true,rentDue:{select:{id:true,month:true,resident:{select:{id:true,name:true}},property:{select:{id:true,name:true,address:true}}}}};
@@ -30,6 +31,7 @@ export function recordOfflinePayment(db){
     const balance=due.amountPaise-due.payments.reduce((n,p)=>n+p.amountPaise,0);
     if(amountPaise>balance)return {error:'AMOUNT_EXCEEDS_BALANCE',status:409};
     const payment=await tx.rentPayment.create({data:{rentDueId,amountPaise,reference,method,recordedById:req.user.id},select});
+    await notify(tx,[due.residentId],{kind:'PAYMENT',title:'Rent payment recorded',body:'A rent payment was recorded by your PG staff. Check your payment history.',dedupeKey:'payment:'+payment.id});
     return {payment,replayed:false};
    },{isolationLevel:'Serializable'});
    return result.error?res.status(result.status).json({error:result.error}):res.status(result.replayed?200:201).json({receipt:receiptData(result.payment)});
