@@ -22,6 +22,7 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  invitations Invitation[] @relation("Inviter")
 }
 model Property {
   id String @id @default(uuid()) @db.Uuid
@@ -31,6 +32,7 @@ model Property {
   address String
   rooms Room[]
   managers ManagerAssignment[]
+  invitations Invitation[]
   @@index([ownerId])
 }
 model ManagerAssignment {
@@ -55,6 +57,7 @@ model Bed {
   room Room @relation(fields: [roomId], references: [id])
   label String
   allocations Allocation[]
+  invitations Invitation[]
   @@unique([roomId, label])
 }
 model Allocation {
@@ -76,4 +79,21 @@ model Session {
   expiresAt DateTime
   revokedAt DateTime?
   @@index([userId])
+}
+
+model Invitation {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  inviterId String @db.Uuid
+  bedId String? @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  inviter User @relation("Inviter", fields: [inviterId], references: [id])
+  bed Bed? @relation(fields: [bedId], references: [id])
+  phone String
+  role Role
+  tokenHash String @unique
+  expiresAt DateTime
+  acceptedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([propertyId, phone])
 }
