@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createRoomRouter } from './rooms.js';
 import { authenticate, requireRole } from '../auth/middleware.js';
 import { propertyScope } from './access.js';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -7,6 +8,7 @@ const valid = (s,max) => typeof s === 'string' && s.trim().length > 0 && s.trim(
 export function createPropertyRouter(db, secret) {
   const router = Router();
   router.use(authenticate(db,secret));
+  router.use('/:id/rooms',createRoomRouter(db));
   router.get('/',async (req,res) => {
     const cursor = req.query.cursor;
     if (cursor !== undefined && (typeof cursor !== 'string' || !uuid.test(cursor))) return res.status(400).json({error:'INVALID_CURSOR'});
