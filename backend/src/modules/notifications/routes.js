@@ -8,6 +8,18 @@ export async function notify(tx,userIds,{kind,title,body,dedupeKey}){
 export function createNotificationRouter(db,secret){
  const router=Router();
  router.use(authenticate(db,secret));
+ router.put('/devices',async(req,res)=>{
+  const {token,platform}=req.body??{};
+  if(typeof token!=='string'||token.length<20||token.length>4096||/\s/.test(token)||!['ANDROID','IOS'].includes(platform))return res.status(400).json({error:'INVALID_DEVICE'});
+  await db.pushDevice.upsert({where:{token},create:{token,platform,userId:req.user.id},update:{platform,userId:req.user.id}});
+  return res.status(204).end();
+ });
+ router.delete('/devices',async(req,res)=>{
+  const token=req.body?.token;
+  if(typeof token!=='string'||token.length>4096)return res.status(400).json({error:'INVALID_DEVICE'});
+  await db.pushDevice.deleteMany({where:{token,userId:req.user.id}});
+  return res.status(204).end();
+ });
  router.get('/',async(req,res)=>{
   const cursor=req.query.cursor;
   if(cursor!==undefined&&(typeof cursor!=='string'||!uuid.test(cursor)))return res.status(400).json({error:'INVALID_CURSOR'});
