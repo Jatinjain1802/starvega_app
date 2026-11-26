@@ -12,7 +12,8 @@
     "test": "node --test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "jobs:daily": "node src/jobs/daily.js"
+    "jobs:daily": "node src/jobs/daily.js",
+    "jobs:push": "node src/jobs/push.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
@@ -21,7 +22,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "express-rate-limit": "^7.5.0",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "firebase-admin": "^13.0.0"
   },
   "devDependencies": {
     "prisma": "^6.19.0"
