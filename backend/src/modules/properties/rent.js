@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { getReceipt, recordOfflinePayment } from '../payments/receipts.js';
 import { requireRole } from '../auth/middleware.js';
 import { propertyScope } from './access.js';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -19,6 +20,8 @@ export function createRentRouter(db){
   if(!await db.property.findFirst({where:{AND:[{id:req.params.id},propertyScope(req.user)]},select:{id:true}}))return res.status(404).json({error:'NOT_FOUND'});
   next();
  });
+ router.post('/payments/offline',recordOfflinePayment(db));
+ router.get('/payments/:paymentId/receipt',getReceipt(db,true));
  router.patch('/settings',requireRole('OWNER'),async(req,res)=>{
   const {monthlyRentPaise,rentDueDay}=req.body??{};
   if(!Number.isInteger(monthlyRentPaise)||monthlyRentPaise<1||monthlyRentPaise>100000000||!Number.isInteger(rentDueDay)||rentDueDay<1||rentDueDay>28)return res.status(400).json({error:'INVALID_INPUT'});
