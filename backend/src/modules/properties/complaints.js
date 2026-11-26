@@ -4,6 +4,8 @@ import { propertyScope } from './access.js';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const valid=(v,n)=>typeof v==='string'&&v.trim().length>0&&v.trim().length<=n;
 const scope=req=>({propertyId:req.params.id,property:propertyScope(req.user),...(req.user.role==='RESIDENT'?{OR:[{visibility:'COMMON'},{residentId:req.user.id}]}:{})});
+const residentFields=userId=>({residentId:true,likes:{where:{userId},select:{userId:true}}});
+const present=(item,user)=>{if(user.role!=='RESIDENT')return item;const {residentId,likes,...rest}=item;return {...rest,isMine:residentId===user.id,likedByMe:Boolean(likes?.length)};};
 const fields={id:true,title:true,description:true,category:true,visibility:true,safety:true,status:true,createdAt:true,updatedAt:true,_count:{select:{likes:true}}};
 export function createComplaintRouter(db){
  const router=Router({mergeParams:true});
@@ -13,8 +15,8 @@ export function createComplaintRouter(db){
   next();
  });
  router.get('/',async(req,res)=>{
-  const items=await db.complaint.findMany({where:scope(req),select:{...fields,...(req.user.role!=='RESIDENT'?{resident:{select:{id:true,name:true}}}:{})},orderBy:[{safety:'desc'},{likes:{_count:'desc'}},{createdAt:'desc'},{id:'asc'}],take:100});
-  res.json({items});
+  const items=await db.complaint.findMany({where:scope(req),select:{...fields,...(req.user.role!=='RESIDENT'?{resident:{select:{id:true,name:true}}}:residentFields(req.user.id))},orderBy:[{safety:'desc'},{likes:{_count:'desc'}},{createdAt:'desc'},{id:'asc'}],take:100});
+  res.json({items:items.map(item=>present(item,req.user))});
  });
  router.post('/',async(req,res)=>{
   if(req.user.role!=='RESIDENT')return res.status(403).json({error:'FORBIDDEN'});
@@ -34,8 +36,8 @@ export function createComplaintRouter(db){
  });
  router.get('/:complaintId',async(req,res)=>{
   if(!uuid.test(req.params.complaintId))return res.status(400).json({error:'INVALID_ID'});
-  const complaint=await db.complaint.findFirst({where:{id:req.params.complaintId,...scope(req)},select:{...fields,events:{select:{status:true,note:true,createdAt:true,...(req.user.role!=='RESIDENT'?{actorId:true}:{})},orderBy:{createdAt:'asc'}}}});
-  return complaint?res.json({complaint}):res.status(404).json({error:'NOT_FOUND'});
+  const complaint=await db.complaint.findFirst({where:{id:req.params.complaintId,...scope(req)},select:{...fields,...(req.user.role==='RESIDENT'?residentFields(req.user.id):{}),events:{select:{status:true,note:true,createdAt:true,...(req.user.role!=='RESIDENT'?{actorId:true}:{})},orderBy:{createdAt:'asc'}}}});
+  return complaint?res.json({complaint:present(complaint,req.user)}):res.status(404).json({error:'NOT_FOUND'});
  });
  for(const [method,liked] of [['put',true],['delete',false]])router[method]('/:complaintId/like',async(req,res)=>{
   if(req.user.role!=='RESIDENT')return res.status(403).json({error:'FORBIDDEN'});
