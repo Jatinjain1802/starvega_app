@@ -113,6 +113,7 @@ model RentDue {
   dueAt DateTime
   createdAt DateTime @default(now())
   payments RentPayment[]
+  paymentOrder PaymentOrder?
   @@unique([propertyId, residentId, month])
   @@index([residentId, dueAt])
 }
@@ -124,4 +125,14 @@ model RentPayment {
   reference String @unique
   paidAt DateTime @default(now())
   @@index([rentDueId])
+}
+
+model PaymentOrder {
+  id String @id @default(uuid()) @db.Uuid
+  rentDueId String @unique @db.Uuid
+  rentDue RentDue @relation(fields: [rentDueId], references: [id])
+  providerOrderId String? @unique
+  amountPaise Int
+  createdAt DateTime @default(now())
+  capturedAt DateTime?
 }
