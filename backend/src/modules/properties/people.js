@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { changeAllocation, assignExistingManager, allocationHistory } from './lifecycle.js';
 import { issueInvitation } from '../auth/invitations.js';
 import { requireRole } from '../auth/middleware.js';
 import { propertyScope } from './access.js';
@@ -13,6 +14,10 @@ export function createPeopleRouter(db) {
    next();
  });
  router.post('/invitations',issueInvitation(db));
+ router.post('/managers',requireRole('OWNER'),assignExistingManager(db));
+ router.post('/allocations/:allocationId/transfer',changeAllocation(db,true));
+ router.post('/allocations/:allocationId/checkout',changeAllocation(db,false));
+ router.get('/residents/:residentId/allocations',allocationHistory(db));
  router.get('/managers',async(req,res)=>{
    const items=await db.managerAssignment.findMany({where:{propertyId:req.params.id,property:propertyScope(req.user)},select:{manager:{select:person}},orderBy:{managerId:'asc'}});
    res.json({items:items.map(x=>x.manager)});
