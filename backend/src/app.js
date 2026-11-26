@@ -1,4 +1,5 @@
 import express from 'express';
+import { createFinanceRouter } from './modules/properties/finance.js';
 import { createNotificationRouter } from './modules/notifications/routes.js';
 import { createPaymentRouter, paymentWebhook } from './modules/payments/routes.js';
 import { createResidentRouter } from './modules/residents/routes.js';
@@ -23,6 +24,7 @@ export function createApp({ db, jwtSecret }) {
     }
   });
   if (jwtSecret) app.use('/api/v1/notifications',createNotificationRouter(db,jwtSecret));
+  if (jwtSecret) app.use('/api/v1/owner/finance',createFinanceRouter(db,jwtSecret));
   if (jwtSecret) app.use('/api/v1/auth', createAuthRouter(db, jwtSecret));
   if (jwtSecret) app.use('/api/v1/properties', createPropertyRouter(db, jwtSecret));
   if (jwtSecret) app.use('/api/v1/resident', createResidentRouter(db, jwtSecret));
