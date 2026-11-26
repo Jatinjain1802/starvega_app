@@ -1,4 +1,5 @@
 import React from 'react';
+import Profile,{ManagerContact} from '../screens/common/Profile';
 import Reports,{Finance} from '../screens/common/Reports';
 import Notifications from '../screens/common/Notifications';
 import Maintenance from '../screens/common/Maintenance';
@@ -27,10 +28,6 @@ function ModuleScreen({route,navigation}){
  const user=useSelector(s=>s.auth.user);
  return <Screen title={route.name} subtitle={user.name}><Card><Text>Module under development.</Text></Card>{['Dashboard','Home'].includes(route.name)?extras[user.role].map(name=><Button key={name} title={name} variant="secondary" onPress={()=>navigation.navigate(name)}/>):null}</Screen>;
 }
-function Profile({navigation}){
- const user=useSelector(s=>s.auth.user);
- return <Screen title="Profile"><Card><Text>{user.name}</Text><Text>{user.phone}</Text><Text>{user.role}</Text></Card><Button title="Notifications" onPress={()=>navigation.navigate('Notifications')}/><Button title="Sign out" onPress={logout}/></Screen>;
-}
 function RoleTabs(){
  const role=useSelector(s=>s.auth.user.role);
  return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:name==='Finance'?Finance:name==='Updates'?Announcements:name==='Expenses'?Expenses:name==='Complaints'?Complaints:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:role==='MANAGER'&&name==='Dashboard'?ManagerDashboard:role==='RESIDENT'&&name==='Home'?ResidentDashboard:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Tabs.Navigator>;
@@ -38,5 +35,5 @@ function RoleTabs(){
 export default function RoleNavigator(){
  const user=useSelector(s=>s.auth.user);
  if(!user||!menus[user.role])return <Screen title="Account unavailable"><Button title="Sign out" onPress={logout}/></Screen>;
- return <NavigationContainer key={user.id+':'+user.role}><Stack.Navigator><Stack.Screen name="Main" component={RoleTabs} options={{headerShown:false}}/>{extras[user.role].map(name=><Stack.Screen key={name} name={name} component={name==='Reports'?Reports:name==='Notifications'?Notifications:name==='Maintenance'?Maintenance:name==='Announcements'?Announcements:name==='ExpenseDetails'?Expenses:name==='Rooms'?Rooms:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(user.role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Stack.Navigator></NavigationContainer>;
+ return <NavigationContainer key={user.id+':'+user.role}><Stack.Navigator><Stack.Screen name="Main" component={RoleTabs} options={{headerShown:false}}/>{extras[user.role].map(name=><Stack.Screen key={name} name={name} component={name==='ManagerContact'?ManagerContact:name==='Reports'?Reports:name==='Notifications'?Notifications:name==='Maintenance'?Maintenance:name==='Announcements'?Announcements:name==='ExpenseDetails'?Expenses:name==='Rooms'?Rooms:name==='Properties'?Properties:['Residents','Managers'].includes(name)?People:name==='Rent'?(user.role==='RESIDENT'?ResidentRent:StaffRent):name==='PaymentHistory'?ResidentRent:ModuleScreen}/>)}</Stack.Navigator></NavigationContainer>;
 }
