@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { issueInvitation } from '../auth/invitations.js';
 import { requireRole } from '../auth/middleware.js';
 import { propertyScope } from './access.js';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -11,6 +12,7 @@ export function createPeopleRouter(db) {
    if(!await db.property.findFirst({where:{AND:[{id:req.params.id},propertyScope(req.user)]},select:{id:true}})) return res.status(404).json({error:'NOT_FOUND'});
    next();
  });
+ router.post('/invitations',issueInvitation(db));
  router.get('/managers',async(req,res)=>{
    const items=await db.managerAssignment.findMany({where:{propertyId:req.params.id,property:propertyScope(req.user)},select:{manager:{select:person}},orderBy:{managerId:'asc'}});
    res.json({items:items.map(x=>x.manager)});
