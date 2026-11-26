@@ -23,11 +23,11 @@ export function createRoomRouter(db) {
     const rooms=await db.room.findMany({where:{propertyId:req.params.id,property:propertyScope(req.user)},select:roomSelect,orderBy:{label:'asc'}});
     res.json(summarizeRooms(rooms));
   });
-  router.post('/',requireRole('OWNER'),async(req,res)=>{
+  router.post('/',requireRole('OWNER','MANAGER'),async(req,res)=>{
     const {label,capacity}=req.body??{};
     if(typeof label!=='string'||!label.trim()||label.trim().length>80||!Number.isInteger(capacity)||capacity<1||capacity>20) return res.status(400).json({error:'INVALID_INPUT'});
     try {
-      const room=await db.room.create({data:{property:{connect:{id:req.params.id,ownerId:req.user.id}},label:label.trim(),beds:{create:Array.from({length:capacity},(_,i)=>({label:String(i+1)}))}},select:roomSelect});
+      const room=await db.room.create({data:{property:{connect:{id:req.params.id,...propertyScope(req.user)}},label:label.trim(),beds:{create:Array.from({length:capacity},(_,i)=>({label:String(i+1)}))}},select:roomSelect});
       return res.status(201).json({room:summarizeRooms([room]).items[0]});
     } catch(err) {
       if(err.code==='P2002') return res.status(409).json({error:'ROOM_LABEL_EXISTS'});
