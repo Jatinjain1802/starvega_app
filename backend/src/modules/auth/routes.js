@@ -29,7 +29,13 @@ export function createAuthRouter(db, secret) {
     const verified = await verifyPassword(password, user?.passwordHash ?? dummy);
     if (!verified || !user?.active) return invalid(res);
     const refreshToken = newRefresh();
-    const session = await db.session.create({ data: { userId: user.id, tokenHash: digest(refreshToken), expiresAt: expiry() } });
+    const session = await db.$transaction(async tx => {
+      // Lock the same account row used by password changes before issuing a session.
+      const rows = await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${user.id}::uuid AND "passwordHash" = ${user.passwordHash} AND active = true FOR UPDATE`;
+      if (!rows.length) return null;
+      return tx.session.create({ data: { userId: user.id, tokenHash: digest(refreshToken), expiresAt: expiry() } });
+    });
+    if (!session) return invalid(res);
     return respond(res, user, session.id, refreshToken);
   });
   router.post('/refresh', limiter, async (req, res) => {
