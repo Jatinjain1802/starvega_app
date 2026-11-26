@@ -22,6 +22,9 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  complaints Complaint[]
+  complaintLikes ComplaintLike[]
+  complaintEvents ComplaintEvent[]
   recordedPayments RentPayment[] @relation("PaymentRecorder")
   rentDues RentDue[]
   invitations Invitation[] @relation("Inviter")
@@ -34,6 +37,7 @@ model Property {
   address String
   rooms Room[]
   managers ManagerAssignment[]
+  complaints Complaint[]
   rentDues RentDue[]
   monthlyRentPaise Int?
   rentDueDay Int @default(5)
@@ -145,4 +149,51 @@ enum PaymentMethod {
   ONLINE
   CASH
   BANK_TRANSFER
+}
+
+enum ComplaintVisibility {
+  COMMON
+  PRIVATE
+}
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REOPENED
+}
+model Complaint {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  residentId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  resident User @relation(fields: [residentId], references: [id])
+  title String
+  description String
+  category String
+  visibility ComplaintVisibility
+  safety Boolean @default(false)
+  status ComplaintStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  likes ComplaintLike[]
+  events ComplaintEvent[]
+  @@index([propertyId, status])
+}
+model ComplaintLike {
+  complaintId String @db.Uuid
+  userId String @db.Uuid
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  @@id([complaintId, userId])
+}
+model ComplaintEvent {
+  id String @id @default(uuid()) @db.Uuid
+  complaintId String @db.Uuid
+  actorId String @db.Uuid
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  actor User @relation(fields: [actorId], references: [id])
+  status ComplaintStatus
+  note String?
+  createdAt DateTime @default(now())
+  @@index([complaintId, createdAt])
 }
