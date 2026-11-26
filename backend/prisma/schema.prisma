@@ -22,6 +22,7 @@ model User {
   assignments ManagerAssignment[]
   allocations Allocation[]
   sessions Session[]
+  rentDues RentDue[]
   invitations Invitation[] @relation("Inviter")
 }
 model Property {
@@ -32,6 +33,9 @@ model Property {
   address String
   rooms Room[]
   managers ManagerAssignment[]
+  rentDues RentDue[]
+  monthlyRentPaise Int?
+  rentDueDay Int @default(5)
   invitations Invitation[]
   @@index([ownerId])
 }
@@ -96,4 +100,28 @@ model Invitation {
   acceptedAt DateTime?
   createdAt DateTime @default(now())
   @@index([propertyId, phone])
+}
+
+model RentDue {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  residentId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  resident User @relation(fields: [residentId], references: [id])
+  month String
+  amountPaise Int
+  dueAt DateTime
+  createdAt DateTime @default(now())
+  payments RentPayment[]
+  @@unique([propertyId, residentId, month])
+  @@index([residentId, dueAt])
+}
+model RentPayment {
+  id String @id @default(uuid()) @db.Uuid
+  rentDueId String @db.Uuid
+  rentDue RentDue @relation(fields: [rentDueId], references: [id])
+  amountPaise Int
+  reference String @unique
+  paidAt DateTime @default(now())
+  @@index([rentDueId])
 }
