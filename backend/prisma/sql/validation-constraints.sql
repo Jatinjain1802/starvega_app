@@ -1,0 +1,11 @@
+BEGIN;
+CREATE UNIQUE INDEX IF NOT EXISTS allocation_one_active_bed ON "Allocation" ("bedId") WHERE "endedAt" IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS allocation_one_active_resident ON "Allocation" ("residentId") WHERE "endedAt" IS NULL;
+ALTER TABLE "Allocation" ADD CONSTRAINT allocation_dates_valid CHECK ("endedAt" IS NULL OR "endedAt">="startedAt");
+ALTER TABLE "Property" ADD CONSTRAINT property_rent_valid CHECK ("rentDueDay" BETWEEN 1 AND 28 AND ("monthlyRentPaise" IS NULL OR "monthlyRentPaise">0));
+ALTER TABLE "RentDue" ADD CONSTRAINT rent_due_positive CHECK ("amountPaise">0);
+ALTER TABLE "RentPayment" ADD CONSTRAINT rent_payment_positive CHECK ("amountPaise">0);
+ALTER TABLE "PaymentOrder" ADD CONSTRAINT payment_order_positive CHECK ("amountPaise">0);
+ALTER TABLE "Expense" ADD CONSTRAINT expense_positive CHECK ("totalPaise">0);
+ALTER TABLE "ExpenseReceipt" ADD CONSTRAINT receipt_size_valid CHECK ("sizeBytes">0 AND "sizeBytes"=octet_length(data));
+COMMIT;

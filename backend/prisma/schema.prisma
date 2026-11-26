@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+enum Role {
+  OWNER
+  MANAGER
+  RESIDENT
+}
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  phone String @unique
+  name String
+  passwordHash String
+  role Role
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  properties Property[]
+  assignments ManagerAssignment[]
+  allocations Allocation[]
+  sessions Session[]
+  notifications Notification[]
+  devices PushDevice[]
+  maintenanceTasks MaintenanceTask[]
+  maintenanceEvents MaintenanceEvent[]
+  expenses Expense[]
+  announcements Announcement[]
+  announcementReads AnnouncementRead[]
+  complaints Complaint[]
+  complaintLikes ComplaintLike[]
+  complaintEvents ComplaintEvent[]
+  recordedPayments RentPayment[] @relation("PaymentRecorder")
+  rentDues RentDue[]
+  invitations Invitation[] @relation("Inviter")
+}
+model Property {
+  id String @id @default(uuid()) @db.Uuid
+  ownerId String @db.Uuid
+  owner User @relation(fields: [ownerId], references: [id])
+  name String
+  address String
+  rooms Room[]
+  managers ManagerAssignment[]
+  maintenanceTasks MaintenanceTask[]
+  expenses Expense[]
+  announcements Announcement[]
+  complaints Complaint[]
+  rentDues RentDue[]
+  monthlyRentPaise Int?
+  rentDueDay Int @default(5)
+  invitations Invitation[]
+  @@index([ownerId])
+}
+model ManagerAssignment {
+  propertyId String @db.Uuid
+  managerId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  manager User @relation(fields: [managerId], references: [id])
+  @@id([propertyId, managerId])
+  @@index([managerId])
+}
+model Room {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  label String
+  beds Bed[]
+  @@unique([propertyId, label])
+}
+model Bed {
+  id String @id @default(uuid()) @db.Uuid
+  roomId String @db.Uuid
+  room Room @relation(fields: [roomId], references: [id])
+  label String
+  allocations Allocation[]
+  invitations Invitation[]
+  @@unique([roomId, label])
+}
+model Allocation {
+  id String @id @default(uuid()) @db.Uuid
+  bedId String @db.Uuid
+  residentId String @db.Uuid
+  bed Bed @relation(fields: [bedId], references: [id])
+  resident User @relation(fields: [residentId], references: [id])
+  startedAt DateTime @default(now())
+  endedAt DateTime?
+  @@index([residentId, endedAt])
+  @@index([bedId, endedAt])
+}
+model Session {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  tokenHash String @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  @@index([userId])
+}
+
+model Invitation {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  inviterId String @db.Uuid
+  bedId String? @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  inviter User @relation("Inviter", fields: [inviterId], references: [id])
+  bed Bed? @relation(fields: [bedId], references: [id])
+  phone String
+  role Role
+  tokenHash String @unique
+  expiresAt DateTime
+  acceptedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([propertyId, phone])
+}
+
+model RentDue {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  residentId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  resident User @relation(fields: [residentId], references: [id])
+  month String
+  amountPaise Int
+  dueAt DateTime
+  createdAt DateTime @default(now())
+  payments RentPayment[]
+  paymentOrder PaymentOrder?
+  @@unique([propertyId, residentId, month])
+  @@index([residentId, dueAt])
+}
+model RentPayment {
+  id String @id @default(uuid()) @db.Uuid
+  rentDueId String @db.Uuid
+  rentDue RentDue @relation(fields: [rentDueId], references: [id])
+  amountPaise Int
+  reference String @unique
+  method PaymentMethod @default(ONLINE)
+  recordedById String? @db.Uuid
+  recordedBy User? @relation("PaymentRecorder", fields: [recordedById], references: [id])
+  paidAt DateTime @default(now())
+  @@index([rentDueId])
+}
+
+model PaymentOrder {
+  id String @id @default(uuid()) @db.Uuid
+  rentDueId String @unique @db.Uuid
+  rentDue RentDue @relation(fields: [rentDueId], references: [id])
+  providerOrderId String? @unique
+  amountPaise Int
+  createdAt DateTime @default(now())
+  capturedAt DateTime?
+}
+
+enum PaymentMethod {
+  ONLINE
+  CASH
+  BANK_TRANSFER
+}
+
+enum ComplaintVisibility {
+  COMMON
+  PRIVATE
+}
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REOPENED
+}
+model Complaint {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  residentId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  resident User @relation(fields: [residentId], references: [id])
+  title String
+  description String
+  category String
+  visibility ComplaintVisibility
+  safety Boolean @default(false)
+  status ComplaintStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  likes ComplaintLike[]
+  events ComplaintEvent[]
+  maintenanceTasks MaintenanceTask[]
+  @@index([propertyId, status])
+}
+model ComplaintLike {
+  complaintId String @db.Uuid
+  userId String @db.Uuid
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  @@id([complaintId, userId])
+}
+model ComplaintEvent {
+  id String @id @default(uuid()) @db.Uuid
+  complaintId String @db.Uuid
+  actorId String @db.Uuid
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  actor User @relation(fields: [actorId], references: [id])
+  status ComplaintStatus
+  note String?
+  createdAt DateTime @default(now())
+  @@index([complaintId, createdAt])
+}
+
+enum AnnouncementCategory {
+  GENERAL
+  FOOD
+  ELECTRICITY
+  WATER
+  MAINTENANCE
+  EMERGENCY
+}
+model Announcement {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  authorId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  title String
+  body String
+  category AnnouncementCategory
+  pinned Boolean @default(false)
+  publishAt DateTime @default(now())
+  expiresAt DateTime?
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reads AnnouncementRead[]
+  @@index([propertyId, publishAt])
+}
+model AnnouncementRead {
+  announcementId String @db.Uuid
+  userId String @db.Uuid
+  announcement Announcement @relation(fields: [announcementId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  readAt DateTime @default(now())
+  @@id([announcementId, userId])
+}
+
+enum ExpenseCategory {
+  GROCERY
+  MAINTENANCE
+  ELECTRICITY
+  WATER
+  SALARY
+  RENT
+  INTERNET
+  CLEANING
+  OTHER
+}
+model Expense {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  authorId String @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  category ExpenseCategory
+  description String
+  vendor String?
+  paymentMethod String
+  incurredAt DateTime
+  totalPaise Int
+  requestKey String
+  createdAt DateTime @default(now())
+  items ExpenseItem[]
+  receipts ExpenseReceipt[]
+  maintenanceTask MaintenanceTask?
+  @@unique([propertyId, requestKey])
+  @@index([propertyId, incurredAt])
+}
+model ExpenseItem {
+  id String @id @default(uuid()) @db.Uuid
+  expenseId String @db.Uuid
+  expense Expense @relation(fields: [expenseId], references: [id])
+  name String
+  unit String
+  quantityMilli Int
+  unitPricePaise Int
+  totalPaise Int
+}
+
+model ExpenseReceipt {
+  id String @id @default(uuid()) @db.Uuid
+  expenseId String @db.Uuid
+  expense Expense @relation(fields: [expenseId], references: [id])
+  contentType String
+  sizeBytes Int
+  sha256 String
+  data Bytes
+  createdAt DateTime @default(now())
+  @@index([expenseId])
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+model MaintenanceTask {
+  id String @id @default(uuid()) @db.Uuid
+  propertyId String @db.Uuid
+  authorId String @db.Uuid
+  complaintId String? @db.Uuid
+  expenseId String? @unique @db.Uuid
+  property Property @relation(fields: [propertyId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+  complaint Complaint? @relation(fields: [complaintId], references: [id])
+  expense Expense? @relation(fields: [expenseId], references: [id])
+  title String
+  description String
+  technician String?
+  status MaintenanceStatus @default(OPEN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events MaintenanceEvent[]
+  @@index([propertyId, status])
+}
+model MaintenanceEvent {
+  id String @id @default(uuid()) @db.Uuid
+  taskId String @db.Uuid
+  actorId String @db.Uuid
+  task MaintenanceTask @relation(fields: [taskId], references: [id])
+  actor User @relation(fields: [actorId], references: [id])
+  status MaintenanceStatus
+  note String
+  createdAt DateTime @default(now())
+  @@index([taskId, createdAt])
+}
+
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  kind String
+  title String
+  body String
+  dedupeKey String
+  readAt DateTime?
+  pushProcessedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt])
+}
+
+model PushDevice {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id])
+  token String @unique
+  platform String
+  updatedAt DateTime @updatedAt
+  @@index([userId])
+}

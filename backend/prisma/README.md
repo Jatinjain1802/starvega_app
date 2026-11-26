@@ -1,0 +1,2 @@
+# Core schema
+Run npm run db:generate and npm run db:migrate -- --name core after configuring PostgreSQL. Before deploying, add a reviewed SQL migration with partial unique indexes on Allocation(bedId) and Allocation(residentId) WHERE endedAt IS NULL. These are mandatory to prevent double allocation. Do not expose allocation writes before those constraints exist. Role validity on property ownership, manager assignments and resident allocations must be enforced in transactional service logic. Schema and helpers are not yet a complete authentication system.
