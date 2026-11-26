@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { createMaintenanceRouter } from './maintenance.js';
 import { createExpenseRouter } from './expenses.js';
 import { createAnnouncementRouter } from './announcements.js';
 import { createComplaintRouter } from './complaints.js';
@@ -15,6 +16,7 @@ export function createPropertyRouter(db, secret) {
   router.use(authenticate(db,secret));
   router.use('/:id/complaints',createComplaintRouter(db));
   router.use('/:id/announcements',createAnnouncementRouter(db));
+  router.use('/:id/maintenance',createMaintenanceRouter(db));
   router.use('/:id/expenses',createExpenseRouter(db));
   router.use('/:id/rooms',createRoomRouter(db));
   router.use('/:id/people',createPeopleRouter(db));
