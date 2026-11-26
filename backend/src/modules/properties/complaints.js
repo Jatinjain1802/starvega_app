@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { notify } from '../notifications/routes.js';
 import { propertyScope } from './access.js';
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const valid=(v,n)=>typeof v==='string'&&v.trim().length>0&&v.trim().length<=n;
@@ -20,7 +21,14 @@ export function createComplaintRouter(db){
   const {title,description,category,visibility,safety=false}=req.body??{};
   if(!valid(title,120)||!valid(description,3000)||!valid(category,60)||!['COMMON','PRIVATE'].includes(visibility)||typeof safety!=='boolean')return res.status(400).json({error:'INVALID_INPUT'});
   try{
-   const complaint=await db.complaint.create({data:{property:{connect:{id:req.params.id,...propertyScope(req.user)}},resident:{connect:{id:req.user.id}},title:title.trim(),description:description.trim(),category:category.trim(),visibility,safety,events:{create:{actorId:req.user.id,status:'OPEN'}}},select:fields});
+   const complaint=await db.$transaction(async tx=>{
+   const complaint=await tx.complaint.create({data:{property:{connect:{id:req.params.id,...propertyScope(req.user)}},resident:{connect:{id:req.user.id}},title:title.trim(),description:description.trim(),category:category.trim(),visibility,safety,events:{create:{actorId:req.user.id,status:'OPEN'}}},select:fields});
+   if(safety){
+    const pg=await tx.property.findUnique({where:{id:req.params.id},select:{owner:{select:{id:true,active:true}},managers:{where:{manager:{active:true}},select:{managerId:true}}}});
+    await notify(tx,[...(pg.owner.active?[pg.owner.id]:[]),...pg.managers.map(m=>m.managerId)],{kind:'SAFETY',title:'Urgent safety complaint',body:'A safety concern was reported. Open your PG complaints to review it.',dedupeKey:'safety:'+complaint.id});
+   }
+   return complaint;
+   },{isolationLevel:'Serializable'});
    return res.status(201).json({complaint});
   }catch(err){if(err.code==='P2025')return res.status(404).json({error:'NOT_FOUND'});throw err;}
  });
@@ -52,12 +60,13 @@ export function createComplaintRouter(db){
   try{
    const result=await db.$transaction(async tx=>{
     const where={id:req.params.complaintId,...scope(req),...(resident?{residentId:req.user.id}:{})};
-    const c=await tx.complaint.findFirst({where,select:{id:true,status:true}});
+    const c=await tx.complaint.findFirst({where,select:{id:true,status:true,residentId:true}});
     if(!c)return 404;
     if(!allowed.includes(c.status))return 409;
     const changed=await tx.complaint.updateMany({where:{...where,status:c.status},data:{status}});
     if(changed.count!==1)return 409;
-    await tx.complaintEvent.create({data:{complaintId:c.id,actorId:req.user.id,status,note:note.trim()}});
+    const event=await tx.complaintEvent.create({data:{complaintId:c.id,actorId:req.user.id,status,note:note.trim()}});
+    await notify(tx,[c.residentId],{kind:'COMPLAINT',title:'Complaint status updated',body:'Open your complaints to review the latest status.',dedupeKey:'complaint:'+event.id});
     return 204;
    },{isolationLevel:'Serializable'});
    return result===204?res.status(204).end():res.status(result).json({error:result===404?'NOT_FOUND':'INVALID_TRANSITION'});
