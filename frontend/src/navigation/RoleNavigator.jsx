@@ -1,4 +1,5 @@
 import React from 'react';
+import OwnerDashboard from '../screens/owner/Dashboard';
 import {Text} from 'react-native';
 import {useSelector} from 'react-redux';
 import {NavigationContainer} from '@react-navigation/native';
@@ -20,7 +21,7 @@ function Profile({navigation}){
 }
 function RoleTabs(){
  const role=useSelector(s=>s.auth.user.role);
- return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:ModuleScreen}/>)}</Tabs.Navigator>;
+ return <Tabs.Navigator screenOptions={{headerShown:false,tabBarActiveTintColor:colors.primary,tabBarInactiveTintColor:colors.muted}}>{menus[role].map(name=><Tabs.Screen key={name} name={name} component={name==='Profile'?Profile:role==='OWNER'&&name==='Dashboard'?OwnerDashboard:ModuleScreen}/>)}</Tabs.Navigator>;
 }
 export default function RoleNavigator(){
  const user=useSelector(s=>s.auth.user);
