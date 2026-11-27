@@ -1,3 +1,4 @@
+import { Section } from '../owner/Overview';
 import RecordLink from '../../components/RecordLink';
 import TaskSheet from '../../components/TaskSheet';
 import { Choices } from '../../components/Controls';
@@ -146,7 +147,7 @@ export default function Maintenance({ route, navigation }) {
         setChoices(null);
       }}
     >
-      {error ? <Text accessibilityLiveRegion="polite">{error}</Text> : null}
+      {error && !form && !current ? <Text accessibilityLiveRegion="polite">{error}</Text> : null}
       {p.state === 'loading' ? (
         <LoadingState />
       ) : p.state === 'error' ? (
@@ -172,6 +173,7 @@ export default function Maintenance({ route, navigation }) {
               disabled={busy}
               onPress={() => {
                 setDetail(null);
+                setError('');
                 setChoices(null);
                 setForm({
                   propertyId: id,
@@ -184,8 +186,17 @@ export default function Maintenance({ route, navigation }) {
             />
           ) : null}
           {manager && form?.propertyId === id ? (
-            <Card>
-              <Text>New maintenance task</Text>
+            <TaskSheet
+              title="New maintenance task"
+              context={p.items.find((x) => x.id === id)?.name}
+              message={error}
+              busy={busy}
+              onClose={() => {
+                setForm(null);
+                setChoices(null);
+                setError('');
+              }}
+            >
               {[
                 ['title', 'Task title', 120],
                 ['description', 'Description', 3000],
@@ -238,16 +249,7 @@ export default function Maintenance({ route, navigation }) {
                 </>
               ) : null}
               <Button title="Save task" loading={busy} onPress={create} />
-              <Button
-                title="Cancel"
-                variant="secondary"
-                disabled={busy}
-                onPress={() => {
-                  setForm(null);
-                  setChoices(null);
-                }}
-              />
-            </Card>
+            </TaskSheet>
           ) : null}
           {current ? (
             <TaskSheet
@@ -336,7 +338,7 @@ export default function Maintenance({ route, navigation }) {
                   />
                 </>
               ) : null}
-              <Text>Status history</Text>
+              <Section>Status history</Section>
               {current.events.map((e, i) => (
                 <Card key={i}>
                   <StatusPill status={e.status} />

@@ -1,3 +1,4 @@
+import { Meter, LedgerLine } from '../../components/Ledger';
 import { useOwnerScope } from './Scope';
 import React, { useEffect } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
@@ -37,7 +38,7 @@ export default function Finance({ navigation, route }) {
     .sort((a, b) => b[1] - a[1])
     .map(([category, amount]) => [
       category.charAt(0) + category.slice(1).toLowerCase().replace(/_/g, ' '),
-      money(amount),
+      amount,
     ]);
 
   return (
@@ -89,12 +90,18 @@ export default function Finance({ navigation, route }) {
                 ['Collection rate', percent(summary.collectionPercent)],
               ]}
             />
+            <Meter percent={summary.collectionPercent} />
             <Text style={styles.note}>Includes payments received after the billing month.</Text>
           </Card>
           <Section>Expense breakdown</Section>
           {expenses.length ? (
             <Card>
-              <Figures rows={expenses} />
+              {expenses.map(([label, amount]) => (
+                <React.Fragment key={label}>
+                  <LedgerLine label={label} value={money(amount)} />
+                  <Meter percent={(amount * 100) / (summary.expensePaise || 1)} />
+                </React.Fragment>
+              ))}
             </Card>
           ) : (
             <EmptyState title="No recorded expenses this month" />

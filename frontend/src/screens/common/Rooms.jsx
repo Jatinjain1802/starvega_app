@@ -235,15 +235,17 @@ export default function Rooms({ route }) {
                     <Text>
                       {r.beds.filter((b) => b.occupied).length} / {r.beds.length} beds occupied
                     </Text>
-                    {r.beds.map((b) => (
-                      <View key={b.id} style={styles.row}>
-                        <Text>Bed {b.label}</Text>
-                        <StatusPill
-                          status={b.occupied ? 'OCCUPIED' : 'VACANT'}
-                          tone={b.occupied ? 'warning' : 'success'}
-                        />
-                      </View>
-                    ))}
+                    <View style={styles.grid}>
+                      {r.beds.map((b) => (
+                        <View key={b.id} style={styles.row}>
+                          <Text style={styles.bedLabel}>Bed {b.label}</Text>
+                          <StatusPill
+                            status={b.occupied ? 'OCCUPIED' : 'VACANT'}
+                            tone={b.occupied ? 'warning' : 'success'}
+                          />
+                        </View>
+                      ))}
+                    </View>
                   </Card>
                 ))
               )}
@@ -258,5 +260,14 @@ const styles = StyleSheet.create({
   heading: { fontSize: 17, fontWeight: '700', color: colors.text },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   stat: { width: '48%', flexGrow: 1 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  bedLabel: { fontWeight: '600', color: colors.text },
+  row: {
+    flexGrow: 1,
+    flexBasis: '42%',
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+    borderColor: colors.border,
+    borderWidth: 1,
+  },
 });

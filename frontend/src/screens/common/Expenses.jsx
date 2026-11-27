@@ -1,3 +1,5 @@
+import { LedgerLine, Meter } from '../../components/Ledger';
+import { Section } from '../owner/Overview';
 import { useReportingMonth } from '../owner/Scope';
 import TaskSheet from '../../components/TaskSheet';
 import RecordLink from '../../components/RecordLink';
@@ -279,7 +281,7 @@ export default function Expenses({ route, navigation }) {
         setPreview(null);
       }}
     >
-      {message ? <Text accessibilityLiveRegion="polite">{message}</Text> : null}
+      {message && !form && !expense ? <Text accessibilityLiveRegion="polite">{message}</Text> : null}
       {p.state === 'loading' ? (
         <LoadingState />
       ) : p.state === 'error' ? (
@@ -303,13 +305,26 @@ export default function Expenses({ route, navigation }) {
             <Button
               title="Add expense"
               disabled={busy}
-              onPress={() => setForm({ ...blank(), incurredAt: new Date().toISOString() })}
+              onPress={() => {
+                setMessage('');
+                setForm({ ...blank(), incurredAt: new Date().toISOString() });
+              }}
             />
           ) : null}
           {manager && form ? (
-            <Card>
-              <Text>New expense · {new Date(form.incurredAt).toLocaleString()}</Text>
+            <TaskSheet
+              title="New expense"
+              context={p.items.find((x) => x.id === id)?.name}
+              message={message}
+              busy={busy}
+              onClose={() => {
+                setForm(null);
+                setMessage('');
+              }}
+            >
+              <Section>Purchase details</Section>
               <Choices
+                compact
                 label="Category"
                 options={categories}
                 value={form.category}
@@ -337,6 +352,7 @@ export default function Expenses({ route, navigation }) {
                 disabled={busy}
                 onChange={(v) => change('paymentMethod', v)}
               />
+              <Section>Line items</Section>
               {form.items.map((x, i) => (
                 <Card key={i}>
                   <Text>Item {i + 1}</Text>
@@ -382,7 +398,8 @@ export default function Expenses({ route, navigation }) {
                 label="Estimated total"
                 value={money(calculate(form.items).reduce((n, x) => n + (total(x) || 0), 0))}
               />
-              <Text>Receipts · {form.receipts.length} of 3 attached</Text>
+              <Section>Receipts</Section>
+              <Text> {form.receipts.length} of 3 attached</Text>
               <Text>Attach at least one photo or PDF, up to 3 MB each.</Text>
               {form.receipts.map((f, i) => (
                 <Card key={i}>
@@ -415,8 +432,7 @@ export default function Expenses({ route, navigation }) {
                 disabled={!form.receipts.length}
                 onPress={submit}
               />
-              <Button title="Cancel" variant="secondary" disabled={busy} onPress={() => setForm(null)} />
-            </Card>
+            </TaskSheet>
           ) : null}
           {!form && (
             <Card>
@@ -439,11 +455,17 @@ export default function Expenses({ route, navigation }) {
           ) : (
             <>
               <StatCard label="Monthly expenses (all categories)" value={money(d.summary.totalPaise)} />
-              {d.summary.categories.map((x) => (
-                <Text key={x.category}>
-                  {displayName(x.category)}: {money(x.totalPaise)}
-                </Text>
-              ))}
+              {!!d.summary.categories.length && (
+                <Card>
+                  {d.summary.categories.map((x) => (
+                    <React.Fragment key={x.category}>
+                      <LedgerLine label={displayName(x.category)} value={money(x.totalPaise)} />
+                      <Meter percent={(100 * x.totalPaise) / (d.summary.totalPaise || 1)} />
+                    </React.Fragment>
+                  ))}
+                </Card>
+              )}
+              <Section>Expense records</Section>
               {!d.items.length ? (
                 <EmptyState title="No matching expenses" />
               ) : (

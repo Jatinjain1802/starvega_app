@@ -46,14 +46,19 @@ const extras = {
   MANAGER: ['Notifications', 'Properties', 'Rooms', 'Rent', 'Maintenance', 'Announcements', 'Reports'],
   RESIDENT: ['Notifications', 'PaymentHistory', 'ManagerContact'],
 };
-const ownerTabIcons = {
+const tabIcons = {
   Dashboard: 'home',
+  Home: 'home',
+  Expenses: 'receipt',
+  Residents: 'people',
+  Rent: 'finance',
+  Updates: 'bell',
   Properties: 'building',
   Finance: 'finance',
   Complaints: 'chat',
   Profile: 'user',
 };
-function ownerTabOptions(name) {
+function tabOptions(name) {
   return {
     tabBarLabel: name === 'Dashboard' ? 'Home' : name,
     tabBarIcon: ({ color, focused, size }) => (
@@ -67,7 +72,7 @@ function ownerTabOptions(name) {
           backgroundColor: focused ? colors.soft : 'transparent',
         }}
       >
-        <Icon name={ownerTabIcons[name]} size={Math.min(20, size)} color={color} />
+        <Icon name={tabIcons[name]} size={Math.min(20, size)} color={color} />
       </View>
     ),
     tabBarActiveTintColor: colors.primary,
@@ -124,7 +129,7 @@ function RoleTabs() {
           name={name}
           key={name}
           component={componentFor(name, role)}
-          options={role === 'OWNER' ? ownerTabOptions(name) : undefined}
+          options={tabOptions(name)}
         />
       ))}
     </Tabs.Navigator>
@@ -143,17 +148,13 @@ export default function RoleNavigator() {
     <Scope key={user.id + ':' + user.role}>
       <NavigationContainer>
         <Stack.Navigator
-          screenOptions={
-            user.role === 'OWNER'
-              ? {
-                  headerTitle: 'Starvega PG',
-                  headerTintColor: colors.primary,
-                  headerStyle: { backgroundColor: colors.background },
-                  headerShadowVisible: false,
-                  headerBackButtonDisplayMode: 'minimal',
-                }
-              : undefined
-          }
+          screenOptions={{
+            headerTitle: 'Starvega PG',
+            headerTintColor: colors.primary,
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerBackButtonDisplayMode: 'minimal',
+          }}
         >
           <Stack.Screen name="Main" component={RoleTabs} options={{ headerShown: false }} />
           {extras[user.role].map((name) => (

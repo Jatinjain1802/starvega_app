@@ -1,3 +1,4 @@
+import { Section } from '../owner/Overview';
 import { Choices } from '../../components/Controls';
 import React, { useCallback, useRef, useState } from 'react';
 import { Text } from 'react-native';
@@ -110,24 +111,42 @@ export default function Notifications() {
               message={filter && cursor ? 'Load older messages to continue.' : undefined}
             />
           ) : (
-            visible.map((n) => (
-              <Card key={n.id}>
-                <Text style={{ fontWeight: n.readAt ? '500' : '700', color: colors.text }}>
-                  {n.title}
-                </Text>
-                <Text>{n.body}</Text>
-                <Text style={{ color: colors.muted }}>{new Date(n.createdAt).toLocaleString()}</Text>
-                {n.readAt ? (
-                  <Text>Read</Text>
-                ) : (
-                  <Button
-                    title="Mark as read"
-                    variant="secondary"
-                    disabled={busy || state === 'more'}
-                    onPress={() => mark(n.id)}
-                  />
+            visible.map((n, i) => (
+              <React.Fragment key={n.id}>
+                {(i === 0 ||
+                  new Date(visible[i - 1].createdAt).toDateString() !==
+                    new Date(n.createdAt).toDateString()) && (
+                  <Section>
+                    {new Date(n.createdAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </Section>
                 )}
-              </Card>
+                <Card style={!n.readAt && { borderLeftWidth: 3, borderLeftColor: colors.brass }}>
+                  <Text style={{ fontWeight: n.readAt ? '500' : '700', color: colors.text }}>
+                    {n.title}
+                  </Text>
+                  <Text>{n.body}</Text>
+                  <Text style={{ color: colors.muted }}>
+                    {new Date(n.createdAt).toLocaleTimeString('en-IN', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </Text>
+                  {n.readAt ? (
+                    <Text>Read</Text>
+                  ) : (
+                    <Button
+                      title="Mark as read"
+                      variant="secondary"
+                      disabled={busy || state === 'more'}
+                      onPress={() => mark(n.id)}
+                    />
+                  )}
+                </Card>
+              </React.Fragment>
             ))
           )}
           {cursor ? (

@@ -1,4 +1,4 @@
-import RecordLink from '../../components/RecordLink';
+import RecordLink, { RecordGroup } from '../../components/RecordLink';
 import TaskSheet from '../../components/TaskSheet';
 import { PropertyPicker, Choices, displayName } from '../../components/Controls';
 import React, { useEffect, useState } from 'react';
@@ -161,6 +161,7 @@ export default function Complaints({ route, navigation }) {
           new Date(b.createdAt) - new Date(a.createdAt)
       );
   const current = detail?.propertyId === id ? detail : null;
+  const listItem = rows.find((c) => c.id === current?.id);
   return (
     <Screen
       title="Complaints"
@@ -274,6 +275,21 @@ export default function Complaints({ route, navigation }) {
               onClose={() => setDetail(null)}
             >
               <Text>{current.description}</Text>
+              {resident && listItem?.visibility === 'COMMON' && (
+                <>
+                  <Text>{listItem._count.likes} likes</Text>
+                  <Button
+                    title={listItem.likedByMe ? 'Remove like' : 'Like complaint'}
+                    variant="secondary"
+                    disabled={busy}
+                    onPress={() =>
+                      run(() =>
+                        api[listItem.likedByMe ? 'delete' : 'put'](base + '/' + listItem.id + '/like')
+                      )
+                    }
+                  />
+                </>
+              )}
               <StatusPill status={current.status} />
               {current.safety ? <StatusPill status="URGENT" /> : null}
               <Text accessibilityRole="header" style={{ fontWeight: '700' }}>
@@ -332,56 +348,29 @@ export default function Complaints({ route, navigation }) {
           ) : !shown.length ? (
             <EmptyState title="No matching complaints" />
           ) : (
-            shown.map((c) =>
-              !resident ? (
+            <RecordGroup>
+              {shown.map((c, i) => (
                 <RecordLink
                   key={c.id}
+                  grouped
+                  divider={i > 0}
                   icon="chat"
                   title={c.title}
-                  detail={[displayName(c.category), c.resident?.name].filter(Boolean).join(' · ')}
+                  detail={[
+                    displayName(c.category),
+                    c.resident?.name,
+                    resident ? displayName(c.visibility) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                   badge={
                     <StatusPill status={c.safety && c.status !== 'RESOLVED' ? 'URGENT' : c.status} />
                   }
                   disabled={busy}
                   onPress={() => open(c)}
                 />
-              ) : (
-                <Card key={c.id}>
-                  {c.safety && c.status !== 'RESOLVED' ? <StatusPill status="URGENT" /> : null}
-                  <Text style={{ fontSize: 17, fontWeight: '700' }}>{c.title}</Text>
-                  <Text>
-                    {displayName(c.category)} · {displayName(c.visibility)}
-                  </Text>
-                  {c.resident ? <Text>Reported by: {c.resident.name}</Text> : null}
-                  <Text numberOfLines={3}>{c.description}</Text>
-                  <StatusPill status={c.status} />
-                  {c.visibility === 'COMMON' ? (
-                    <>
-                      <Text>{c._count.likes} likes</Text>
-                      {resident ? (
-                        <Button
-                          title={c.likedByMe ? 'Remove like' : 'Like complaint'}
-                          variant="secondary"
-                          disabled={busy}
-                          onPress={() =>
-                            run(async () => {
-                              await api[c.likedByMe ? 'delete' : 'put'](base + '/' + c.id + '/like');
-                              setDetail(null);
-                            })
-                          }
-                        />
-                      ) : null}
-                    </>
-                  ) : null}
-                  <Button
-                    title="Open complaint"
-                    variant="secondary"
-                    disabled={busy}
-                    onPress={() => open(c)}
-                  />
-                </Card>
-              )
-            )
+              ))}
+            </RecordGroup>
           )}
         </>
       )}

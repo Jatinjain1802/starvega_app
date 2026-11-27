@@ -1,3 +1,5 @@
+import Courtyard from '../../components/Courtyard';
+import { Section } from '../owner/Overview';
 import TaskSheet from '../../components/TaskSheet';
 import RecordLink from '../../components/RecordLink';
 import { displayName } from '../../components/Controls';
@@ -46,14 +48,14 @@ export function ManagerContact() {
         <EmptyState title="No assigned manager available" />
       ) : (
         <>
-          <Card>
-            <Text>{pg.name}</Text>
-            <Text>{pg.address}</Text>
-          </Card>
+          <Courtyard label="YOUR PROPERTY" title={pg.name} detail={pg.address} />
+          <Section>Assigned managers</Section>
           {pg.managers.map(({ manager: m }) => (
             <Card key={m.id}>
-              <Text>{m.name}</Text>
-              <Text>{m.phone}</Text>
+              <Text style={styles.name}>{m.name}</Text>
+              <Text selectable style={styles.phone}>
+                {m.phone}
+              </Text>
               <Button title="Call manager" onPress={() => contact(m.phone, false)} />
               <Button title="WhatsApp" variant="secondary" onPress={() => contact(m.phone, true)} />
             </Card>
@@ -123,7 +125,7 @@ export default function Profile({ navigation }) {
     }
   }
   return (
-    <Screen title="Profile and settings">
+    <Screen eyebrow="Account" title="Profile and settings">
       <Card style={styles.identity}>
         <View accessible={false} importantForAccessibility="no-hide-descendants" style={styles.seal}>
           <Text style={styles.initials}>
@@ -206,9 +208,9 @@ export default function Profile({ navigation }) {
         onPress={() => navigation.navigate('Notifications')}
       />
       {user.role === 'RESIDENT' ? (
-        <Button
+        <RecordLink
           title="Manager contact"
-          variant="secondary"
+          icon="people"
           disabled={busy}
           onPress={() => navigation.navigate('ManagerContact')}
         />

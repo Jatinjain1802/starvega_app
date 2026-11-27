@@ -1,3 +1,4 @@
+import { Section } from '../owner/Overview';
 import { colors } from '../../theme';
 import { useReportingMonth } from '../owner/Scope';
 import { PropertyPicker, MonthPicker, Choices } from '../../components/Controls';
@@ -140,9 +141,8 @@ export default function Reports({ route }) {
           ) : (
             <>
               <Card>
-                <Text>
-                  {labels[kind]} · {d.rows.length} records
-                </Text>
+                <Section>{labels[kind]}</Section>
+                <Text>{d.rows.length} records</Text>
                 <Text>As of {new Date(d.asOf).toLocaleString()}</Text>
                 <Button
                   title="Share report as CSV"
@@ -168,7 +168,9 @@ export default function Reports({ route }) {
                         }}
                       >
                         <Text style={{ color: colors.muted }}>{columnLabel(c)}</Text>
-                        <Text style={{ fontWeight: '600', color: colors.text }}>
+                        <Text
+                          style={{ fontWeight: '600', color: colors.text, fontSize: j === 0 ? 18 : 15 }}
+                        >
                           {format(c, row[j])}
                         </Text>
                       </View>

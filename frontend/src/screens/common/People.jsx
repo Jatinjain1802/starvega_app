@@ -1,3 +1,4 @@
+import { colors } from '../../theme';
 import TaskSheet from '../../components/TaskSheet';
 import RecordLink, { RecordGroup } from '../../components/RecordLink';
 import { PropertyPicker } from '../../components/Controls';
@@ -146,6 +147,7 @@ export default function People({ route }) {
   });
   return (
     <Screen
+      eyebrow="People directory"
       title={managers ? 'Managers' : 'Residents'}
       action={
         p.state === 'ready' && state === 'ready' && d && (!managers || owner) ? (
@@ -354,6 +356,18 @@ export default function People({ route }) {
                 value={search}
                 onChangeText={setSearch}
               />
+              {!!matches.length && (
+                <Text style={{ color: colors.muted }}>
+                  {matches.length}{' '}
+                  {managers
+                    ? matches.length === 1
+                      ? 'manager'
+                      : 'managers'
+                    : matches.length === 1
+                      ? 'resident'
+                      : 'residents'}
+                </Text>
+              )}
               {!!matches.length && (
                 <RecordGroup>
                   {matches.map((x, index) => {

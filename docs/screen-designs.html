@@ -1,0 +1,538 @@
+<!doctype html><meta charset="utf-8" /><meta
+  name="viewport"
+  content="width=device-width,initial-scale=1"
+/><title>Starvega PG · Screen designs</title
+><style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: #f4f1e9;
+    color: #192b3c;
+    margin: 0;
+    font: 15px system-ui;
+  }
+  main {
+    max-width: 1440px;
+    margin: auto;
+    padding: 36px;
+  }
+  h1,
+  h2,
+  .lead {
+    font-family: Georgia, serif;
+    font-weight: 400;
+  }
+  h1 {
+    font-size: clamp(30px, 5vw, 55px);
+    margin: 10px 0;
+  }
+  p,
+  small {
+    color: #5b636a;
+  }
+  nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 20px 0 28px;
+  }
+  button {
+    font: inherit;
+    border: 1px solid #d8d3c6;
+    border-radius: 24px;
+    padding: 9px 15px;
+    background: #fffdf8;
+    cursor: pointer;
+  }
+  button[aria-pressed="true"] {
+    background: #20364b;
+    color: white;
+  }
+  section {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+    gap: 20px;
+  }
+  article {
+    background: #fffdf8;
+    border: 1px solid #d8d3c6;
+    border-radius: 18px;
+    padding: 17px;
+  }
+  h2 {
+    font-size: 25px;
+    margin: 4px 0 15px;
+  }
+  small {
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-size: 10px;
+    color: #785b28;
+  }
+  .art {
+    height: 85px;
+    background: center/cover url("../frontend/src/assets/courtyard.jpg");
+    border-radius: 10px 10px 0 0;
+  }
+  .lead {
+    font-size: 21px;
+    padding: 15px;
+    background: #e9e3d6;
+    border-radius: 9px;
+  }
+  .lead.metric,
+  .lead.ops,
+  .lead.art {
+    background: #20364b;
+    color: #fffdf3;
+  }
+  .lead strong {
+    font: 28px Georgia;
+    display: block;
+    margin-top: 4px;
+  }
+  .row,
+  .foot {
+    padding: 11px 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #e4ded3;
+  }
+  .row strong,
+  .foot strong {
+    color: #55606b;
+    font: 13px system-ui;
+    text-align: right;
+  }
+  .foot {
+    font-size: 13px;
+    color: #384c5c;
+    border: 0;
+  }
+  .row span {
+    font-size: 14px;
+  }
+  @media (max-width: 650px) {
+    main {
+      padding: 16px;
+    }
+  }
+</style>
+<main>
+  <small>Starvega PG</small>
+  <h1>Screen designs</h1>
+  <p>Role-based layout studies · Example records</p>
+  <nav>
+    <button aria-pressed="true">All</button
+    ><button aria-pressed="false">Access</button
+    ><button aria-pressed="false">Owner</button
+    ><button aria-pressed="false">Manager</button
+    ><button aria-pressed="false">Resident</button
+    ><button aria-pressed="false">Property operations</button
+    ><button aria-pressed="false">Payments</button
+    ><button aria-pressed="false">Operations</button
+    ><button aria-pressed="false">Account</button>
+  </nav>
+  <section>
+    <article data-group="Access">
+      <header>
+        <small>Access</small>
+        <h2>Sign in</h2>
+      </header>
+      <div class="art"></div>
+      <div class="lead art"><span>Welcome back</span></div>
+      <div class="row">
+        <span>Mobile number</span><strong>+91 ••••• •••••</strong>
+      </div>
+      <div class="row"><span>Password</span><strong>Show</strong></div>
+      <div class="row"><span>Sign in</span></div>
+      <div class="foot"><span>Accept invitation</span></div>
+    </article>
+    <article data-group="Access">
+      <header>
+        <small>Access</small>
+        <h2>Accept invitation</h2>
+      </header>
+      <div class="lead form"><span>Join your PG</span></div>
+      <div class="row">
+        <span>Invitation code</span><strong>Paste code</strong>
+      </div>
+      <div class="row">
+        <span>Full name</span><strong>Mobile number</strong>
+      </div>
+      <div class="row"><span>Create password</span></div>
+      <div class="foot"><span>Create account</span></div>
+    </article>
+    <article data-group="Access">
+      <header>
+        <small>Access</small>
+        <h2>Session restore</h2>
+      </header>
+      <div class="art"></div>
+      <div class="lead art"><span>Starvega PG</span></div>
+      <div class="row"><span>Restoring session…</span></div>
+      <div class="row">
+        <span>Connection interrupted</span><strong>Try again</strong>
+      </div>
+      <div class="foot"><span>Return to login</span></div>
+    </article>
+    <article data-group="Owner">
+      <header>
+        <small>Owner</small>
+        <h2>Portfolio overview</h2>
+      </header>
+      <div class="lead metric">
+        <span>Rent received</span><strong>₹85,000</strong>
+      </div>
+      <div class="row">
+        <span>Outstanding rent</span><strong>₹12,000</strong>
+      </div>
+      <div class="row"><span>Expenses</span><strong>₹6,500</strong></div>
+      <div class="row">
+        <span>Quick actions</span
+        ><strong>Rent · Expenses · Rooms · Residents</strong>
+      </div>
+      <div class="foot">
+        <span>Current occupancy</span><strong>16 of 20 beds</strong>
+      </div>
+    </article>
+    <article data-group="Owner">
+      <header>
+        <small>Owner</small>
+        <h2>Finances</h2>
+      </header>
+      <div class="lead metric">
+        <span>Net cash flow</span><strong>₹78,500</strong>
+      </div>
+      <div class="row"><span>Rent received</span><strong>₹85,000</strong></div>
+      <div class="row">
+        <span>Recorded expenses</span><strong>₹6,500</strong>
+      </div>
+      <div class="row">
+        <span>Monthly rent</span
+        ><strong>Billed · Collected · Outstanding</strong>
+      </div>
+      <div class="foot">
+        <span>Property comparison</span><strong>Open reports</strong>
+      </div>
+    </article>
+    <article data-group="Manager">
+      <header>
+        <small>Manager</small>
+        <h2>Operations</h2>
+      </header>
+      <div class="lead ops">
+        <span>Rent to collect</span><strong>₹12,000</strong>
+      </div>
+      <div class="row">
+        <span>Safety queue</span><strong>Kitchen tap leaking</strong>
+      </div>
+      <div class="row">
+        <span>Quick actions</span
+        ><strong>Residents · Rooms · Expenses · Notices</strong>
+      </div>
+      <div class="row">
+        <span>Occupancy</span><strong>16 occupied · 4 available</strong>
+      </div>
+      <div class="foot">
+        <span>Rent follow-up</span><strong>Review accounts</strong>
+      </div>
+    </article>
+    <article data-group="Resident">
+      <header>
+        <small>Resident</small>
+        <h2>My stay</h2>
+      </header>
+      <div class="art"></div>
+      <div class="lead art"><span>Asha’s stay</span></div>
+      <div class="row"><span>Rent balance</span><strong>₹5,000</strong></div>
+      <div class="row"><span>View rent</span></div>
+      <div class="row">
+        <span>Lakeview PG</span><strong>Room 101 · Bed A</strong>
+      </div>
+      <div class="foot">
+        <span>Services</span
+        ><strong>Receipts · Complaints · Notices · Manager</strong>
+      </div>
+    </article>
+    <article data-group="Property operations">
+      <header>
+        <small>Property operations</small>
+        <h2>Properties</h2>
+      </header>
+      <div class="lead list"><span>Your properties</span></div>
+      <div class="row">
+        <span>Find a property</span><strong>Name or address</strong>
+      </div>
+      <div class="row">
+        <span>Lakeview PG</span><strong>12 Lake Road</strong>
+      </div>
+      <div class="row">
+        <span>Maple House</span><strong>Church Street</strong>
+      </div>
+      <div class="foot"><span>Add property</span></div>
+    </article>
+    <article data-group="Property operations">
+      <header>
+        <small>Property operations</small>
+        <h2>Rooms and beds</h2>
+      </header>
+      <div class="lead grid"><span>Lakeview PG</span></div>
+      <div class="row"><span>Rooms</span><strong>12</strong></div>
+      <div class="row"><span>Vacant beds</span><strong>4</strong></div>
+      <div class="row">
+        <span>Find a room</span><strong>Room or bed label</strong>
+      </div>
+      <div class="row">
+        <span>Room 101</span><strong>A occupied · B vacant</strong>
+      </div>
+      <div class="foot"><span>Create room</span></div>
+    </article>
+    <article data-group="Property operations">
+      <header>
+        <small>Property operations</small>
+        <h2>Residents</h2>
+      </header>
+      <div class="lead list"><span>Resident directory</span></div>
+      <div class="row">
+        <span>Find a resident</span><strong>Name, phone, room or bed</strong>
+      </div>
+      <div class="row">
+        <span>Asha Rao</span><strong>Room 101 · Bed A</strong>
+      </div>
+      <div class="row">
+        <span>Resident details</span
+        ><strong>Transfer · History · Checkout</strong>
+      </div>
+      <div class="foot"><span>Invite resident</span></div>
+    </article>
+    <article data-group="Property operations">
+      <header>
+        <small>Property operations</small>
+        <h2>Managers</h2>
+      </header>
+      <div class="lead list"><span>Manager directory</span></div>
+      <div class="row">
+        <span>Find a manager</span><strong>Name or mobile</strong>
+      </div>
+      <div class="row">
+        <span>Dev Shah</span><strong>Assigned to Lakeview PG</strong>
+      </div>
+      <div class="row">
+        <span>Manager details</span><strong>Assignment</strong>
+      </div>
+      <div class="foot"><span>Invite manager</span></div>
+    </article>
+    <article data-group="Payments">
+      <header>
+        <small>Payments</small>
+        <h2>Rent collection</h2>
+      </header>
+      <div class="lead metric">
+        <span>Outstanding rent</span><strong>₹12,000</strong>
+      </div>
+      <div class="row">
+        <span>Reporting month</span><strong>November 2026</strong>
+      </div>
+      <div class="row">
+        <span>Resident accounts</span><strong>With dues · Paid · All</strong>
+      </div>
+      <div class="row">
+        <span>Asha Rao</span><strong>₹5,000 outstanding</strong>
+      </div>
+      <div class="foot"><span>Record payment</span></div>
+    </article>
+    <article data-group="Payments">
+      <header>
+        <small>Payments</small>
+        <h2>My rent</h2>
+      </header>
+      <div class="lead metric">
+        <span>Balance due</span><strong>₹5,000</strong>
+      </div>
+      <div class="row">
+        <span>November rent</span><strong>₹5,000 outstanding</strong>
+      </div>
+      <div class="row"><span>Due date</span><strong>5 November</strong></div>
+      <div class="row"><span>Pay outstanding rent</span></div>
+      <div class="foot"><span>Payment history</span></div>
+    </article>
+    <article data-group="Payments">
+      <header>
+        <small>Payments</small>
+        <h2>Payment history</h2>
+      </header>
+      <div class="lead ledger"><span>Rent receipts</span></div>
+      <div class="row">
+        <span>November 2026</span><strong>Lakeview PG</strong>
+      </div>
+      <div class="row">
+        <span>₹5,000</span><strong>Bank transfer · 2 Nov</strong>
+      </div>
+      <div class="foot"><span>Share receipt</span></div>
+    </article>
+    <article data-group="Payments">
+      <header>
+        <small>Payments</small>
+        <h2>Expenses</h2>
+      </header>
+      <div class="lead ledger">
+        <span>Monthly spending</span><strong>₹6,500</strong>
+      </div>
+      <div class="row">
+        <span>Property &amp; month</span><strong>Lakeview · November</strong>
+      </div>
+      <div class="row">
+        <span>Kitchen tap repair</span><strong>₹650 · Maintenance</strong>
+      </div>
+      <div class="row">
+        <span>Expense detail</span><strong>Items · Receipts</strong>
+      </div>
+      <div class="foot"><span>Add expense</span></div>
+    </article>
+    <article data-group="Payments">
+      <header>
+        <small>Payments</small>
+        <h2>New expense</h2>
+      </header>
+      <div class="lead form"><span>Add expense</span></div>
+      <div class="row"><span>Description</span><strong>Vendor</strong></div>
+      <div class="row">
+        <span>Items</span><strong>Quantity × unit price</strong>
+      </div>
+      <div class="row"><span>Total</span><strong>₹650</strong></div>
+      <div class="row">
+        <span>Receipts</span><strong>Add photo or PDF</strong>
+      </div>
+      <div class="foot"><span>Submit expense</span></div>
+    </article>
+    <article data-group="Operations">
+      <header>
+        <small>Operations</small>
+        <h2>Maintenance</h2>
+      </header>
+      <div class="lead list"><span>Repair queue</span></div>
+      <div class="row"><span>Task status</span><strong>All tasks</strong></div>
+      <div class="row">
+        <span>Kitchen tap repair</span><strong>In progress</strong>
+      </div>
+      <div class="row">
+        <span>Task details</span><strong>Technician · History · Expense</strong>
+      </div>
+      <div class="foot"><span>Create maintenance task</span></div>
+    </article>
+    <article data-group="Operations">
+      <header>
+        <small>Operations</small>
+        <h2>Complaints</h2>
+      </header>
+      <div class="lead list"><span>Complaint queue</span></div>
+      <div class="row">
+        <span>Visibility &amp; status</span><strong>Filter complaints</strong>
+      </div>
+      <div class="row">
+        <span>Kitchen tap leaking</span><strong>Water · Open</strong>
+      </div>
+      <div class="row">
+        <span>Complaint details</span><strong>History · Status update</strong>
+      </div>
+      <div class="foot">
+        <span>Resident action</span><strong>Raise complaint</strong>
+      </div>
+    </article>
+    <article data-group="Operations">
+      <header>
+        <small>Operations</small>
+        <h2>Announcements and updates</h2>
+      </header>
+      <div class="lead list"><span>Property notices</span></div>
+      <div class="row">
+        <span>Category</span><strong>All announcements</strong>
+      </div>
+      <div class="row">
+        <span>Water tank cleaning</span><strong>Published · Water</strong>
+      </div>
+      <div class="row">
+        <span>Notice detail</span><strong>Message · Publication date</strong>
+      </div>
+      <div class="foot">
+        <span>Staff action</span><strong>Publish announcement</strong>
+      </div>
+    </article>
+    <article data-group="Operations">
+      <header>
+        <small>Operations</small>
+        <h2>Reports</h2>
+      </header>
+      <div class="lead ledger"><span>Property reports</span></div>
+      <div class="row"><span>Report</span><strong>Rent collection</strong></div>
+      <div class="row">
+        <span>Reporting month</span><strong>November 2026</strong>
+      </div>
+      <div class="row">
+        <span>Asha Rao</span><strong>Billed · Paid · Outstanding</strong>
+      </div>
+      <div class="foot"><span>Share report as CSV</span></div>
+    </article>
+    <article data-group="Account">
+      <header>
+        <small>Account</small>
+        <h2>Notifications</h2>
+      </header>
+      <div class="lead list"><span>Inbox</span></div>
+      <div class="row">
+        <span>Show</span><strong>All messages · Unread</strong>
+      </div>
+      <div class="row">
+        <span>Rent payment recorded</span><strong>Today</strong>
+      </div>
+      <div class="row">
+        <span>Message actions</span><strong>Mark as read</strong>
+      </div>
+      <div class="foot"><span>Mark all as read</span></div>
+    </article>
+    <article data-group="Account">
+      <header>
+        <small>Account</small>
+        <h2>Profile</h2>
+      </header>
+      <div class="lead list"><span>Account settings</span></div>
+      <div class="row"><span>Asha Rao</span><strong>Resident</strong></div>
+      <div class="row">
+        <span>Change password</span><strong>Account security</strong>
+      </div>
+      <div class="row"><span>Notification inbox</span></div>
+      <div class="foot"><span>Sign out</span></div>
+    </article>
+    <article data-group="Account">
+      <header>
+        <small>Account</small>
+        <h2>Manager contact</h2>
+      </header>
+      <div class="lead list"><span>Your PG team</span></div>
+      <div class="row">
+        <span>Lakeview PG</span><strong>12 Lake Road</strong>
+      </div>
+      <div class="row">
+        <span>Dev Shah</span><strong>Property manager</strong>
+      </div>
+      <div class="row"><span>Mobile</span><strong>Contact number</strong></div>
+      <div class="foot"><span>Call manager · WhatsApp</span></div>
+    </article>
+  </section>
+</main>
+<script>
+  document.querySelector("nav").onclick = (e) => {
+    if (e.target.tagName !== "BUTTON") return;
+    const k = e.target.textContent;
+    document
+      .querySelectorAll("button")
+      .forEach((b) => b.setAttribute("aria-pressed", b === e.target));
+    document
+      .querySelectorAll("article")
+      .forEach((a) => (a.hidden = k !== "All" && a.dataset.group !== k));
+  };
+</script>

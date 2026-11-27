@@ -123,18 +123,24 @@ export default function Announcements({ route }) {
     });
   }
   const rows = data?.id === id ? data.items : [],
-    visible = rows.filter(
-      (a) =>
-        (!resident || status(a) === 'PUBLISHED') &&
-        (filter === 'ALL' ||
-          (filter === 'UNREAD'
-            ? !a.readAt
-            : filter === 'ARCHIVED'
-              ? !!a.archivedAt
-              : a.category === filter))
-    );
+    visible = rows
+      .filter(
+        (a) =>
+          (!resident || status(a) === 'PUBLISHED') &&
+          (filter === 'ALL' ||
+            (filter === 'UNREAD'
+              ? !a.readAt
+              : filter === 'ARCHIVED'
+                ? !!a.archivedAt
+                : a.category === filter))
+      )
+      .sort(
+        (a, b) =>
+          Number(!!b.pinned) - Number(!!a.pinned) || Date.parse(b.publishAt) - Date.parse(a.publishAt)
+      );
   return (
     <Screen
+      eyebrow="Noticeboard"
       title={resident ? 'PG updates' : 'Announcements'}
       refreshing={p.state === 'loading' || (!!id && state === 'loading')}
       onRefresh={() => {
@@ -266,10 +272,11 @@ export default function Announcements({ route }) {
             visible.map((a) => (
               <React.Fragment key={a.id}>
                 <RecordLink
-                  icon="bell"
+                  icon={a.pinned ? 'star' : 'bell'}
                   title={a.title}
                   detail={
                     (a.pinned ? 'Pinned · ' : '') +
+                    (resident && !a.readAt ? 'Unread · ' : '') +
                     displayName(a.category) +
                     ' · ' +
                     toIST(a.publishAt) +

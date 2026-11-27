@@ -59,6 +59,7 @@ export default function Properties({ navigation }) {
   }
   return (
     <Screen
+      eyebrow={owner ? 'Portfolio' : 'Property operations'}
       title="Properties"
       subtitle={
         items.length ? items.length + ' ' + (items.length === 1 ? 'property' : 'properties') : undefined
@@ -131,7 +132,12 @@ export default function Properties({ navigation }) {
                     ['Rent', 'Rent collection', 'finance'],
                     ['Reports', 'Reports', 'chart'],
                   ]
-                : [['Rooms', 'Rooms & beds', 'room']]
+                : [
+                    ['Rooms', 'Rooms & beds', 'room'],
+                    ['Rent', 'Rent collection', 'finance'],
+                    ['Maintenance', 'Maintenance', 'tool'],
+                    ['Reports', 'Reports', 'chart'],
+                  ]
             }
             onSelect={openModule}
           />

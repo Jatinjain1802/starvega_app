@@ -1,3 +1,6 @@
+import { LedgerLine } from '../../components/Ledger';
+import { useFocusEffect } from '@react-navigation/native';
+import { colors, type } from '../../theme';
 import { useReportingMonth } from '../owner/Scope';
 import TaskSheet from '../../components/TaskSheet';
 import { Highlight, Section } from '../owner/Overview';
@@ -51,7 +54,7 @@ async function shareReceipt(path) {
     ].join('\n'),
   });
 }
-export function ResidentRent({ route }) {
+export function ResidentRent({ route, navigation }) {
   const history = route.name === 'PaymentHistory';
   const user = useSelector((s) => s.auth.user);
   const [rows, setRows] = useState([]),
@@ -60,31 +63,35 @@ export function ResidentRent({ route }) {
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState('');
   const reload = () => setRev((n) => n + 1);
-  useEffect(() => {
-    const c = new AbortController();
-    setState('loading');
-    (async () => {
-      let cursor = null,
-        items = [];
-      do {
-        const { data } = await api.get('/resident/rent', {
-          params: cursor ? { cursor } : {},
-          signal: c.signal,
-        });
-        items.push(...data.items);
-        cursor = data.nextCursor;
-      } while (cursor && !c.signal.aborted);
-      if (!c.signal.aborted) {
-        setRows(items.sort((a, b) => b.month.localeCompare(a.month)));
-        setState('ready');
-      }
-    })().catch(() => {
-      if (!c.signal.aborted) setState('error');
-    });
-    return () => c.abort();
-  }, [rev]);
+  useFocusEffect(
+    React.useCallback(() => {
+      const c = new AbortController();
+      setState('loading');
+      (async () => {
+        let cursor = null,
+          items = [];
+        do {
+          const { data } = await api.get('/resident/rent', {
+            params: cursor ? { cursor } : {},
+            signal: c.signal,
+          });
+          items.push(...data.items);
+          cursor = data.nextCursor;
+        } while (cursor && !c.signal.aborted);
+        if (!c.signal.aborted) {
+          setRows(items.sort((a, b) => b.month.localeCompare(a.month)));
+          setState('ready');
+        }
+      })().catch(() => {
+        if (!c.signal.aborted) setState('error');
+      });
+      return () => c.abort();
+    }, [rev])
+  );
+  const paying = useRef(false);
   async function pay(d) {
-    if (busy) return;
+    if (busy || paying.current) return;
+    paying.current = true;
     setBusy(true);
     setMessage('');
     try {
@@ -105,9 +112,10 @@ export function ResidentRent({ route }) {
       setMessage(
         e.response?.data?.error === 'PAYMENTS_DISABLED'
           ? 'Online payments are not configured.'
-          : 'Checkout did not confirm payment. Refresh before trying again; contact staff if debited.'
+          : 'Checkout did not confirm payment. Refresh before trying again. Contact staff if debited.'
       );
     } finally {
+      paying.current = false;
       setBusy(false);
       reload();
     }
@@ -123,71 +131,97 @@ export function ResidentRent({ route }) {
       setBusy(false);
     }
   }
+  const payments = rows
+    .flatMap((d) => d.payments.map((p) => ({ ...p, month: d.month, property: d.property.name })))
+    .sort((a, b) => Date.parse(b.paidAt) - Date.parse(a.paidAt));
+  const date = (s) =>
+    new Date(s).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Asia/Kolkata',
+    });
   return (
     <Screen
+      eyebrow="Resident account"
       title={history ? 'Payment history' : 'My rent'}
       refreshing={state === 'loading'}
       onRefresh={reload}
     >
-      {message ? <Text accessibilityLiveRegion="polite">{message}</Text> : null}
+      {!!message && <Text accessibilityLiveRegion="polite">{message}</Text>}
       {state === 'loading' ? (
         <LoadingState />
       ) : state === 'error' ? (
         <ErrorState onRetry={reload} />
-      ) : !rows.length ? (
-        <EmptyState title="No rent records" />
+      ) : history ? (
+        <>
+          {payments.length ? (
+            <>
+              <Highlight
+                label="Total paid"
+                value={money(payments.reduce((n, p) => n + p.amountPaise, 0))}
+                detail={payments.length + ' recorded payments'}
+              />
+              <Section>Receipts</Section>
+              {payments.map((p) => (
+                <Card key={p.id}>
+                  <Text style={{ ...type.section, color: colors.text }}>{money(p.amountPaise)}</Text>
+                  <Text>
+                    {p.property} · {monthLabel(p.month)}
+                  </Text>
+                  <LedgerLine label={displayName(p.method)} value={date(p.paidAt)} />
+                  <Button
+                    title="Share receipt"
+                    variant="secondary"
+                    disabled={busy}
+                    onPress={() => receipt(p.id)}
+                  />
+                </Card>
+              ))}
+            </>
+          ) : (
+            <EmptyState
+              title="No payments yet"
+              message="Receipts appear here after a payment is recorded."
+            />
+          )}
+        </>
       ) : (
         <>
-          {!history ? (
-            <StatCard
-              label="Total outstanding"
-              value={money(rows.reduce((n, d) => n + d.outstandingPaise, 0))}
-            />
-          ) : null}
-          {rows
-            .filter((d) => !history || d.payments.length)
-            .map((d) => (
-              <Card key={d.id}>
-                <Text style={{ fontWeight: '700' }}>
-                  {monthLabel(d.month)} · {d.property.name}
-                </Text>
-                <Text>
-                  Due date: {new Date(d.dueAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}
-                </Text>
-                <Text>
-                  Billed: {money(d.amountPaise)} · Outstanding: {money(d.outstandingPaise)}
-                </Text>
-                <StatusPill
-                  status={
-                    d.outstandingPaise === 0
-                      ? 'PAID'
-                      : new Date(d.dueAt) < new Date()
-                        ? 'OVERDUE'
-                        : 'PENDING'
-                  }
-                />
-                {!history && d.outstandingPaise > 0 ? (
-                  <Button title="Pay outstanding rent" disabled={busy} onPress={() => pay(d)} />
-                ) : null}
-                {d.payments.map((p) => (
-                  <Card key={p.id}>
-                    <Text>
-                      {money(p.amountPaise)} · {displayName(p.method)}
-                    </Text>
-                    <Text>{new Date(p.paidAt).toLocaleDateString()}</Text>
-                    <Button
-                      title="Share receipt"
-                      variant="secondary"
-                      disabled={busy}
-                      onPress={() => receipt(p.id)}
-                    />
-                  </Card>
-                ))}
-              </Card>
-            ))}
-          {history && !rows.some((d) => d.payments.length) ? (
-            <EmptyState title="No payments yet" />
-          ) : null}
+          <Highlight
+            label="Total outstanding"
+            value={money(rows.reduce((n, d) => n + d.outstandingPaise, 0))}
+            action="Payment history"
+            onPress={() => navigation.navigate('PaymentHistory')}
+          />
+          {rows.length ? (
+            <>
+              <Section>Monthly charges</Section>
+              {rows.map((d) => (
+                <Card key={d.id}>
+                  <Text style={{ ...type.section, color: colors.text }}>{monthLabel(d.month)}</Text>
+                  <Text style={{ color: colors.muted }}>{d.property.name}</Text>
+                  <StatusPill
+                    status={
+                      d.outstandingPaise === 0
+                        ? 'PAID'
+                        : Date.parse(d.dueAt) < Date.now()
+                          ? 'OVERDUE'
+                          : 'PENDING'
+                    }
+                  />
+                  <LedgerLine label="Due date" value={date(d.dueAt)} />
+                  <LedgerLine label="Billed" value={money(d.amountPaise)} />
+                  <LedgerLine label="Outstanding" value={money(d.outstandingPaise)} />
+                  {d.outstandingPaise > 0 && (
+                    <Button title="Pay outstanding rent" disabled={busy} onPress={() => pay(d)} />
+                  )}
+                </Card>
+              ))}
+            </>
+          ) : (
+            <EmptyState title="No rent records" />
+          )}
         </>
       )}
     </Screen>
@@ -382,11 +416,11 @@ export function StaffRent({ route }) {
                 label="Outstanding rent"
                 value={money(data.summary.outstandingPaise)}
                 detail={money(data.summary.overduePaise) + ' overdue'}
+                metrics={[
+                  ['Billed', money(data.summary.billedPaise)],
+                  ['Collected against dues', money(data.summary.collectedPaise)],
+                ]}
               />
-              <Card>
-                <Text>Billed · {money(data.summary.billedPaise)}</Text>
-                <Text>Collected against dues · {money(data.summary.collectedPaise)}</Text>
-              </Card>
               <Choices
                 label="Resident accounts"
                 options={[

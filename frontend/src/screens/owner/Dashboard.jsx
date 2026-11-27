@@ -1,3 +1,4 @@
+import { Meter } from '../../components/Ledger';
 import { useOwnerScope } from './Scope';
 import React, { useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
@@ -80,6 +81,18 @@ export default function OwnerDashboard({ navigation }) {
           />
         </>
       )}
+      {status === 'ready' && !!data?.properties.length && summary?.collectionPercent != null && (
+        <Card>
+          <View style={styles.row}>
+            <Text style={styles.heading}>Rent collection rate</Text>
+            <Text style={styles.rate}>{percent(summary.collectionPercent)}</Text>
+          </View>
+          <Meter percent={summary.collectionPercent} />
+          <Text style={styles.muted}>
+            {money(summary.paidAgainstDuesPaise)} collected against {money(summary.billedPaise)} billed
+          </Text>
+        </Card>
+      )}
       <Section>Quick actions</Section>
       <Shortcuts items={frequent} onSelect={open} />
       {more && (
@@ -105,14 +118,7 @@ export default function OwnerDashboard({ navigation }) {
                 <Text style={styles.rate}>{percent(summary.occupancyPercent)}</Text>
               )}
             </View>
-            <View style={styles.track}>
-              <View
-                style={[
-                  styles.fill,
-                  { width: Math.min(100, Math.max(0, summary.occupancyPercent || 0)) + '%' },
-                ]}
-              />
-            </View>
+            <Meter percent={summary.occupancyPercent} />
             <Text style={styles.muted}>
               {summary.beds - summary.occupiedBeds} vacant beds · {summary.rooms - summary.occupiedRooms}{' '}
               vacant rooms
@@ -141,6 +147,4 @@ const styles = StyleSheet.create({
   heading: { color: colors.text, fontWeight: '700', fontSize: 16 },
   muted: { color: colors.muted, fontSize: 14 },
   rate: { fontWeight: '700', color: colors.primary },
-  track: { height: 8, borderRadius: 4, backgroundColor: colors.soft, overflow: 'hidden' },
-  fill: { height: 8, borderRadius: 4, backgroundColor: colors.brass },
 });
